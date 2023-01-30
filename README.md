@@ -1,6 +1,6 @@
 # fundChain
 
-<img src="https://capsule-render.vercel.app/api?text=HeyEveryone" />
+<img src="https://capsule-render.vercel.app/api?text=HeyEveryone🕹️&animation=fadeIn&type=waving&color=gradient&height=100" />
 #DECENTRALIZED CROWDFUNDING PLATFORM
 #STEPS TO RUN THE WEB APP:
 1. Clone the repo using git clone reponame then install all dependecies -> npm i
