@@ -1,9 +1,9 @@
-# fundChain :hourglass:
+# fundChain 💰
 
 <img src="https://capsule-render.vercel.app/api?text=HeyEveryone🕹️&animation=fadeIn&type=waving&color=gradient&height=100" />
 
 ## DECENTRALIZED CROWDFUNDING PLATFORM
-## Setup
+## Setup ⌛
 - Clone the repository
 
   ```bash
