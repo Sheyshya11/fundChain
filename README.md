@@ -12,4 +12,4 @@
 
 ## Requirements
 - Metamask account connected to the Goerli test network
-- Fake Ether from Goerli Faucet
+- Fake Ether from [Goerli Faucet](https://goerlifaucet.com/)
