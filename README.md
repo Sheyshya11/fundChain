@@ -5,10 +5,15 @@
 ## DECENTRALIZED CROWDFUNDING PLATFORM
 ### Setup
 - Clone the repository
+
   ```bash
-    git clone reponame
+  git clone reponame
   ```
-- Install dependencies: npm i
+- Install dependencies
+  
+  ```bash
+  npm i
+  ```
 - Create a .env file in the third-web folder and insert your Metamask private key
 - In the third-web folder, build and deploy: npm run build followed by npm run deploy
 - In the client folder, run: npm run dev
