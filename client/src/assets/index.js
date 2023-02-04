@@ -22,6 +22,7 @@ import icon from './icon.png'
 import creatoricon from './creatoricon.png'
 import paymentreq from './paymentreq.png'
 import logo2 from './logo2.png'
+import notfound from './404.png'
 
 
 
@@ -49,5 +50,6 @@ export {
   icon,
   creatoricon,
  paymentreq,
- logo2
+ logo2,
+ notfound
 };

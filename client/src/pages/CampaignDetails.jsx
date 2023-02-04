@@ -1,60 +1,79 @@
 import React, { useState, useEffect } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom';
-import { ethers } from 'ethers';
-
-
+import { useNavigate, useParams } from 'react-router-dom';
 import { useStateContext } from '../context';
-import { CountBox, CustomButton, Loader } from '../components';
-import { calculateBarPercentage, daysLeft, checkIfdonator } from '../utils';
-import { thirdweb, creatoricon } from '../assets';
+import { CountBox, CustomButton, Loader, ShareCampaign } from '../components';
+import { calculateBarPercentage, daysLeft } from '../utils';
+import { creatoricon } from '../assets';
 
 
 const CampaignDetails = () => {
 
-  const { state } = useLocation();
   const navigate = useNavigate();
-  const { donate, getDonations, contract, address, deleteCampaign, connect  ,getRequest} = useStateContext();
+  const { donate, getDonations, contract, address, deleteCampaign, connect, getCampaigns } = useStateContext();
 
+  const { id } = useParams();
+  const [campaigns, setCampaigns] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [amount, setAmount] = useState('');
   const [donations, setDonations] = useState([]);
-  const remainingDays = daysLeft(state.deadline);
 
-  const fetchDonators = async () => {
-    const data = await getDonations(state.pId);
-    setDonations(data);
-   
+  const remainingDays = daysLeft(campaigns.deadline);
+  const intId = parseInt(id)
+
+  const fetchCampaigns = async () => {
+    setIsLoading(true);
+    const data = await getCampaigns();
+    const filterarray = data.filter((state) => {
+      return state.pId === intId;
+    });
+    let [filteredObject] = filterarray;
+    setCampaigns(filteredObject);
+    setIsLoading(false);
   }
 
   useEffect(() => {
     if (contract) {
+      fetchCampaigns();
+    }
+  }, [address, contract]);
+
+
+
+  const fetchDonators = async () => {
+    const data = await getDonations(id);
+    setDonations(data);
+  }
+
+
+  useEffect(() => {
+    if (contract) {
       fetchDonators();
-      
-      }
+
+    }
 
   }, [contract, address])
- 
-  
-  
-  const handleCreateRequest = async(pId)=>{
-    navigate(`/create-request/${pId}`,{state: state})
+
+
+
+  const handleCreateRequest = async (pId) => {
+    navigate(`/create-request/${pId}`, { state: campaigns })
 
   }
- 
+  console.log(donations)
+
   const handleDonate = async (e) => {
     e.preventDefault();
     if (address) {
-      if (address !== state.owner) {
+      if (address !== campaigns.owner) {
         if (amount > 0) {
-          if (amount <= state.target - state.amountCollected) {
+          if (amount <= campaigns.target - campaigns.amountCollected) {
             setIsLoading(true);
-            await donate(state.pId, amount);
+            await donate(campaigns.pId, amount);
             navigate('/home')
             setIsLoading(false);
           }
           else {
             alert('Donation exceeds campaign target');
-
           }
         }
         else {
@@ -70,18 +89,15 @@ const CampaignDetails = () => {
     }
   }
 
-
   const handleNavigate = (pId) => {
-    navigate(`/view-request/${pId}`, { state: state })
+    navigate(`/view-request/${pId}`, { state: campaigns })
   }
-
-console.log(state)
 
   const handleDelete = async () => {
 
-    if (address == state.owner) {
+    if (address == campaigns.owner) {
       setIsLoading(true);
-      await deleteCampaign(state.pId);
+      await deleteCampaign(campaigns.pId);
       navigate('/home');
       setIsLoading(false);
     }
@@ -101,50 +117,47 @@ console.log(state)
 
       <div className="w-full flex md:flex-row flex-col mt-10 gap-[30px]">
         <div className="flex-1 flex-col">
-          <img src={state.image} alt="campaign" className="w-full h-[410px] object-cover rounded-xl" />
+          <img src={campaigns.image} alt="campaign" className="w-full h-[410px] object-cover rounded-xl" />
           <div className="relative w-full h-[5px] bg-[#3a3a43] mt-2">
-            <div className="absolute h-full bg-[#4acd8d]" style={{ width: `${calculateBarPercentage(state.target, state.amountCollected)}%`, maxWidth: '100%' }}>
+          <div className="absolute h-full bg-[#4acd8d]" style={{ width: `${calculateBarPercentage(campaigns.target, campaigns.amountCollected)}%`, maxWidth: '100%' }}>
             </div>
           </div>
         </div>
 
         <div className="flex md:w-[150px] w-full flex-wrap justify-between gap-[30px]">
-          <CountBox title="Days Left" value={remainingDays} />
-          <CountBox title={`Raised of ${state.target}`} value={state.amountCollected} />
+          {remainingDays < 0 ? <CountBox title="Days Left" value='Expired' /> : <CountBox title="Days Left" value={remainingDays} />}
+          {/*  <CountBox title="Days Left" value={remainingDays} /> */}
+          <CountBox title={`Raised of ${campaigns.target}`} value={campaigns.amountCollected} />
           <CountBox title="Total Backers" value={donations.length} />
         </div>
       </div>
 
       <div className='flex flex-row justify-start content-center my-[20px]'>
-        {address == state.owner ? (<CustomButton
+        {address == campaigns.owner ? (<CustomButton
           btnType="button"
           title={'Create Request'}
           styles={' bg-[#8c6dfd] w-[160px] text-[14px] '}
           handleClick={() => {
-            if (address) handleCreateRequest(state.pId)
+            if (address) handleCreateRequest(campaigns.pId)
             else connect()
           }}
-        />) : ''}{address ?  <CustomButton
+        />) : ''}{address ? <CustomButton
           btnType="button"
           title={'View Request'}
-          styles={address!=state.owner ? 'bg-[#8c6dfd] w-[160px] text-[14px]': 'bg-[#8c6dfd] w-[160px] ml-[20px] text-[14px]'}
+          styles={address != campaigns.owner ? 'bg-[#8c6dfd] w-[160px] text-[14px]' : 'bg-[#8c6dfd] w-[160px] ml-[20px] text-[14px]'}
           handleClick={() => {
-          if (address){
-           
-              handleNavigate(state.pId);
-            
-            
-           }
-           
+            if (address) {
+              handleNavigate(campaigns.pId);
+            }
             else {
-            connect()
+              connect()
             }
           }}
         /> : ''
 
         }
-      
-  
+
+
       </div>
       <div className="mt-[60px] flex lg:flex-row flex-col gap-5">
         <div className="flex-[2] flex flex-col gap-[40px]">
@@ -156,20 +169,17 @@ console.log(state)
                 <img src={creatoricon} alt="user" className=" object-contain" />
               </div>
               <div>
-                <h4 className="font-epilogue font-semibold text-[14px] text-white break-all">{state.owner}</h4>
+                <h4 className="font-epilogue font-semibold text-[14px] text-white break-all">{campaigns.owner}</h4>
 
               </div>
             </div>
           </div>
 
-
-
-
           <div>
             <h4 className="font-epilogue font-semibold text-[18px] text-white uppercase">Story</h4>
 
             <div className="mt-[20px]">
-              <p className="font-epilogue font-normal text-[16px] text-[#808191] leading-[26px] text-justify">{state.description}</p>
+              <p className="font-epilogue font-normal text-[16px] text-[#808191] leading-[26px] text-justify">{campaigns.description}</p>
             </div>
           </div>
 
@@ -186,12 +196,8 @@ console.log(state)
                 <p className="font-epilogue font-normal text-[16px] text-[#808191] leading-[26px] text-justify">No donators yet. Be the first one!</p>
               )}
             </div>
-
-
           </div>
-
         </div>
-
         <div className="flex-1">
           <div className="mt-[20px] flex flex-col p-4 bg-[#1c1c24] rounded-[10px]">
             <p className="font-epilogue fount-medium text-[20px] leading-[30px] text-center text-[#808191]">
@@ -220,12 +226,13 @@ console.log(state)
 
               />
 
-              {address == state.owner ? <CustomButton
+              {address == campaigns.owner ? <CustomButton
                 btnType="button"
                 title="Delete Campaign"
                 styles="w-full bg-[#ED5E68] mt-[10px]"
                 handleClick={handleDelete}
               /> : ''}
+              <ShareCampaign />
 
             </div>
           </div>

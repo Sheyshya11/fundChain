@@ -8,3 +8,5 @@ export { default as CountBox } from './CountBox';
 export { default as Loader } from './Loader';
 export {default as Footer} from './Footer'
 export {default as RequestBox} from './RequestBox.jsx'
+export {default as ShareCampaign} from './shareCampaign';
+export {default as ErrorBox} from './ErrorBox'

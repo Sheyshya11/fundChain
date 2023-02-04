@@ -9,7 +9,7 @@ import { useParams } from 'react-router-dom';
 const StateContext = createContext();
 
 export const StateContextProvider = ({ children }) => {
-  const { contract } = useContract('0xeE38A877172BE5dd8a605876777C40d3E0f0b189');
+  const { contract } = useContract('0xc48709749D6db647760f9ba9183A99eFD0f3c89D');
   const { mutateAsync: createCampaign } = useContractWrite(contract, 'createCampaign');
   const { mutateAsync: createRequest } = useContractWrite(contract, 'createRequest');
 
@@ -99,6 +99,7 @@ export const StateContextProvider = ({ children }) => {
     const allRequests = await getRequests();
 
     const filteredRequests = allRequests.filter((request) => request.creator === address);
+ 
 
     return filteredRequests;
   }

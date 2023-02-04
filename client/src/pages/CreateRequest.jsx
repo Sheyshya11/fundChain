@@ -6,14 +6,12 @@ import { useStateContext } from '../context';
 import { CustomButton, FormField, Loader } from '../components';
 import { checkIfImage } from '../utils';
 
-
-
 const CreateRequest = () => {
   const navigate = useNavigate();
-  const {state} = useLocation();
+  const { state } = useLocation();
   const [isLoading, setIsLoading] = useState(false);
-  const { createRequest } = useStateContext();
-  
+  const { address, createRequest } = useStateContext();
+
   const [form, setForm] = useState({
     campaignId: '',
     title: '',
@@ -24,36 +22,46 @@ const CreateRequest = () => {
   });
 
   const handleFormFieldChange = (fieldName, e) => {
-    setForm({ ...form, [fieldName]: e.target.value }) 
+    setForm({ ...form, [fieldName]: e.target.value })
   }
- 
- 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-  
     checkIfImage(form.image, async (exists) => {
-      if(exists) {
-       if (state.owner != form.recipient){
-        setIsLoading(true)
-        await createRequest({ ...form, campaignId: state.pId, goal: ethers.utils.parseUnits(form.goal, 18)} )
-        setIsLoading(false);
-        navigate(`/view-request/${state.pId}`,{state: state});
-       }
-       else{
-        alert('Owner address cant be used as recipient address.')
-       }
+      if (exists) {
+        if (address === state.owner) {
+          if (state.owner != form.recipient) {
+            if (state.amountCollected > form.goal) {
+              if (form.goal > 0) {
+                setIsLoading(true)
+                await createRequest({ ...form, campaignId: state.pId, goal: ethers.utils.parseUnits(form.goal, 18) })
+                setIsLoading(false);
+                navigate(`/view-request/${state.pId}`, { state: state });
+              }
+              else {
+                alert('Cant be zero')
+                setForm({ ...form, goal: '' })
+              }
+            }
+            else {
+              alert("Request Amount should be less than amount collected")
+              setForm({ ...form, goal: '' });
+            }
+          }
+          else {
+            alert('Owner address cant be used as recipient address.')
+          }
+        }
+        else {
+          alert('Only owner can create Request');
+        }
       } else {
         alert('Provide valid image URL')
         setForm({ ...form, image: '' });
-        
+
       }
     })
-
-    
-
-     
   }
 
   return (
@@ -64,53 +72,53 @@ const CreateRequest = () => {
       </div>
 
       <form onSubmit={handleSubmit} className="w-full mt-[65px] flex flex-col gap-[30px]">
-      
-      <FormField
+
+        <FormField
           labelName="Request Title *"
           placeholder="Oxygen cylinders"
           inputType="text"
           value={form.title}
-          handleChange={(e)=>  handleFormFieldChange('title', e)}
-          />
-      <FormField
+          handleChange={(e) => handleFormFieldChange('title', e)}
+        />
+        <FormField
           labelName="Recipient Address *"
           placeholder="0xA2AXXXXXXXXXXXXXX"
           inputType="text"
           value={form.recipient}
-          handleChange={(e)=>  handleFormFieldChange('recipient', e)}
-          />
-
-          <FormField 
-            labelName="Amount *"
-            placeholder="ETH 0.50"
-            inputType="text"
-            value={form.goal}
-            handleChange={(e) => handleFormFieldChange('goal', e)}
-          />
-         
-          <FormField
-        labelName="Story *"
-        placeholder="Write Your Story"
-        isTextArea
-        value={form.description}
-        handleChange={(e)=> handleFormFieldChange('description', e)}
+          handleChange={(e) => handleFormFieldChange('recipient', e)}
         />
 
-        <FormField 
-            labelName="Recipient Citizenship Image *"
-            placeholder="Place image URL of your campaign"
-            inputType="url"
-            value={form.image}
-            handleChange={(e) => handleFormFieldChange('image', e)}
-          />
+        <FormField
+          labelName="Amount *"
+          placeholder="ETH 0.50"
+          inputType="text"
+          value={form.goal}
+          handleChange={(e) => handleFormFieldChange('goal', e)}
+        />
 
-          <div className="flex justify-center items-center mt-[40px]">
-            <CustomButton 
-              btnType="submit"
-              title="Submit new Request"
-              styles="bg-[#1dc071]"
-            />
-          </div>
+        <FormField
+          labelName="Story *"
+          placeholder="Write Your Story"
+          isTextArea
+          value={form.description}
+          handleChange={(e) => handleFormFieldChange('description', e)}
+        />
+
+        <FormField
+          labelName="Recipient Citizenship Image *"
+          placeholder="Place image URL of your campaign"
+          inputType="url"
+          value={form.image}
+          handleChange={(e) => handleFormFieldChange('image', e)}
+        />
+
+        <div className="flex justify-center items-center mt-[40px]">
+          <CustomButton
+            btnType="submit"
+            title="Submit new Request"
+            styles="bg-[#1dc071]"
+          />
+        </div>
       </form>
     </div>
   )

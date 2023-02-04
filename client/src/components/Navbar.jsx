@@ -5,6 +5,7 @@ import { useStateContext } from '../context';
 import { CustomButton } from './';
 import { logo, menu, search, icon, logo2 } from '../assets';
 import { navlinks } from '../constants';
+import { truncate } from '../utils';
 
 
 const Navbar = () => {
@@ -29,9 +30,17 @@ const Navbar = () => {
 
 
       </div>
-
-
-      {pathname === '/' ? '' : <div className="sm:flex hidden flex-row justify-end gap-4 ">
+      {pathname === '/' ? '' : <div className="sm:flex hidden flex-row justify-end gap-4 items-center ">
+      {address ? <CustomButton
+          btnType="button"
+          title={truncate(address, 4, 4, 11)}
+          styles='bg-[#8c6dfd]' 
+          handleClick={() => {
+             navigate('/dashboard')
+          
+          }}
+        /> : '' }
+      
       <CustomButton
           btnType="button"
           title={address ? 'Create a campaign' : 'Connect'}
@@ -41,12 +50,8 @@ const Navbar = () => {
             else connect()
           }}
         />
-          
 
-
-
-
-        <Link to="/home">
+        <Link to="/profile">
           <div className="w-[52px] h-[52px] rounded-full bg-[#2c2f32] flex justify-center items-center cursor-pointer">
             <img src={icon} alt="user" className="w-[60%] h-[60%] object-contain" />
           </div>
@@ -57,10 +62,11 @@ const Navbar = () => {
 
       {/* Small screen navigation */}
       <div className="sm:hidden flex justify-between items-center relative">
+        <Link to='/'>
         <div className="w-[60px] h-[50px] rounded-[10px] bg-[#2c2f32] flex justify-center items-center cursor-pointer">
-          <img src={logo2} alt="user" className="w-[60%] h-[60%] object-contain" />
+          <img src={logo2} alt="user" className="w-[60%] h-[60%] object-contain" />        
         </div>
-
+        </Link>
         <img
           src={menu}
           alt="menu"

@@ -30,7 +30,7 @@ contract CrowdFunding {
         Campaign storage campaign = campaigns[numberOfCampaigns];
 
         require(
-            campaign.deadline < block.timestamp,
+           _deadline > block.timestamp,
             "The deadline should be a date in the future."
         );
 
@@ -151,5 +151,13 @@ contract CrowdFunding {
         );
         require(_id < numberOfCampaigns, "campaign not found");
         delete campaigns[_id];
+        for (uint256 i = 0; i < numberOfRequests; i++) {
+            if ( requests[i].campaignId == _id)
+            {
+                delete requests[i];
+            }
+          
+        }
+        
     }
 }

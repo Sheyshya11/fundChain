@@ -8,8 +8,9 @@ const Profile = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [requests, setRequests] = useState([]);
     const {state} = useLocation();
+    const navigate = useNavigate();
   const { address, contract, getUserRequests } = useStateContext();
-console.log(state)
+
   const fetchRequests = async () => {
     setIsLoading(true);
     const data = await getUserRequests();
@@ -21,9 +22,13 @@ console.log(state)
     if(contract) fetchRequests();
   }, [address, contract]);
 
+  const handleNavigate = (request) => {
+    navigate(`/request-details/${request.rId}`, { state: request })
+  }
+
   return (
     <div>
-    <h1 className="font-epilogue font-semibold text-[18px] text-white text-left">{"All Request"} ({requests.length})</h1>
+    <h1 className="font-epilogue font-semibold text-[18px] text-white text-left">{"Requests Profile"} ({requests.length})</h1>
 
     <div className="flex flex-wrap mt-[20px] gap-[26px]">
 

@@ -21,7 +21,7 @@ const Landing = () => {
                   title={'Get Started'}
                   styles={'bg-green-500 sm:w-[300px] w-[200px] absolute bottom-[20px]'}
                   handleClick={() => {
-                     navigate('home')
+                     navigate('dashboard')
 
                   }} />
 
