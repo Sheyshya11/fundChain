@@ -7,7 +7,7 @@
 - Clone the repository
 
   ```bash
-  git clone reponame
+  git clone <link>
   ```
 - Install dependencies
   
