@@ -15,6 +15,10 @@
   npm i
   ```
 - Create a .env file in the third-web folder and insert your Metamask private key
+
+```bash
+PRIVATE_KEY=XXXXXXX
+```
 - In the third-web folder, build and deploy
   
   ```bash
@@ -27,5 +31,6 @@
   npm run dev
   ```
 ## Requirements
-- Metamask account connected to the Goerli test network
+- Metamask account connected to the Goerli test network.
+- Can use any testnets but third web doesn't support 1337 chain ID for local/private blockchain.
 - Fake Ether from [Goerli Faucet](https://goerlifaucet.com/)
