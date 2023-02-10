@@ -19,7 +19,7 @@
   ```bash
   PRIVATE_KEY=XXXXXXX
   ```
-- In the third-web folder, build and deploy
+- In the third-web folder, build and deploy your smart contract
   
   ```bash
   npm run build
