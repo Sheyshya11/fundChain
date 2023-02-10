@@ -23,7 +23,7 @@ const App = () => {
           <Route  path="/profile" element={<Profile />} />
           <Route  path="/create-campaign" element={address ? <CreateCampaign />: <NotFoundPage/>} />
           <Route  path="/create-request/:id" element={<CreateRequest />}/>
-          <Route  path="/view-request/:id" element={<DisplayRequests />}/>
+          <Route  path="/view-request/:id" element={ <DisplayRequests />}/>
           <Route  path="/viewAllRequest" element={<RequestProfile />}/>
           <Route  path='/request-details/:id' element={<RequestDetails />}/>
           <Route  path="/campaign-details/:name/:id" element={<CampaignDetails />} />

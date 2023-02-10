@@ -1,15 +1,27 @@
 import React, { useState, useEffect} from 'react'
 import { useStateContext} from '../context'
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { loader } from '../assets';
 import { RequestBox } from '../components';
+import { withdraw } from '../assets';
+import { Icons } from 'react-toastify';
 
-const Profile = () => {
+
+const RequestProfile = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [requests, setRequests] = useState([]);
-    const {state} = useLocation();
-    const navigate = useNavigate();
-  const { address, contract, getUserRequests } = useStateContext();
+
+
+  const { state } = useLocation();
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { address, contract, getUserRequests} = useStateContext();
+  
+  const handleNavigate = (request) => {
+    navigate(`/request-details/${request.rId}`, { state: request })
+  }
+ 
+
 
   const fetchRequests = async () => {
     setIsLoading(true);
@@ -17,24 +29,40 @@ const Profile = () => {
     setRequests(data);
     setIsLoading(false);
   }
-
+ console.log(requests)
   useEffect(() => {
     if(contract) fetchRequests();
   }, [address, contract]);
+console.log(requests.length)
 
-  const handleNavigate = (request) => {
-    navigate(`/request-details/${request.rId}`, { state: request })
-  }
-
-  return (
-    <div>
-    <h1 className="font-epilogue font-semibold text-[18px] text-white text-left">{"Requests Profile"} ({requests.length})</h1>
+  return ( <div>
+    <h1 className="font-epilogue font-semibold text-[18px] text-white text-left">{`All Requests`} ({requests.length})</h1>
 
     <div className="flex flex-wrap mt-[20px] gap-[26px]">
+
+    
+
+    <div className='flex flex-row justify-between items-center w-full rounded-[15px] px-4 h-[90px]  bg-[#1c1c24] text-blue-500 ' >
+      <div className='flex items-center gap-4 w-[260px] justify-start '>
+      <img src={withdraw}></img>
+        <p className='text-white'>Request title</p>
+      </div>
+      <div className='flex items-center w-[180px] justify-center'>
+      <p className='text-white'>Goal</p>
+      </div>
+      <div className='flex items-center w-[180px] justify-center'>
+      <p className='text-white'>Approval Count</p>
+      </div>
+      <div className='flex items-center w-[180px] justify-center'>
+      <p className='text-white'>Action</p>
+      </div>
+
+      </div>
 
       {isLoading && (
         <img src={loader} alt="loader" className="w-[100px] h-[100px] object-contain" />
       )}
+
 
       {!isLoading && requests.length === 0 && (
         <p className="font-epilogue font-semibold text-[14px] leading-[30px] text-[#818183]">
@@ -44,13 +72,13 @@ const Profile = () => {
 
       {!isLoading && requests.length > 0 && requests.map((request) => <RequestBox
         key={request.rId}
+        rId={request.rId}
         {...request}
         handleClick={() => handleNavigate(request)}
       />)}
     </div>
   </div>
-  
   )
 }
 
-export default Profile
+export default RequestProfile

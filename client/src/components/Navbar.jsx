@@ -14,6 +14,7 @@ const Navbar = () => {
   const [toggleDrawer, setToggleDrawer] = useState(false);
   const { connect, address } = useStateContext();
   const { pathname } = useLocation();
+ 
 
 
   return (
@@ -31,23 +32,25 @@ const Navbar = () => {
 
       </div>
       {pathname === '/' ? '' : <div className="sm:flex hidden flex-row justify-end gap-4 items-center ">
-      {address ? <CustomButton
+        {address ? <CustomButton
           btnType="button"
           title={truncate(address, 4, 4, 11)}
-          styles='bg-[#8c6dfd]' 
+          styles='bg-[#7024ec]' //8c6dfd
           handleClick={() => {
-             navigate('/dashboard')
-          
+            navigate('/dashboard')
+
           }}
-        /> : '' }
-      
-      <CustomButton
+        /> : ''}
+
+        <CustomButton
           btnType="button"
           title={address ? 'Create a campaign' : 'Connect'}
-          styles={address ? 'bg-[#1dc071]' : 'bg-[#8c6dfd]'}
+          styles={address ? 'bg-[#1dc071]' : 'bg-[#7024ec]'}
           handleClick={() => {
             if (address) navigate('create-campaign')
-            else connect()
+            else{
+              connect();
+            }
           }}
         />
 
@@ -63,9 +66,9 @@ const Navbar = () => {
       {/* Small screen navigation */}
       <div className="sm:hidden flex justify-between items-center relative">
         <Link to='/'>
-        <div className="w-[60px] h-[50px] rounded-[10px] bg-[#2c2f32] flex justify-center items-center cursor-pointer">
-          <img src={logo2} alt="user" className="w-[60%] h-[60%] object-contain" />        
-        </div>
+          <div className="w-[60px] h-[50px] rounded-[10px] bg-[#2c2f32] flex justify-center items-center cursor-pointer">
+            <img src={logo2} alt="user" className="w-[60%] h-[60%] object-contain" />
+          </div>
         </Link>
         <img
           src={menu}
@@ -111,7 +114,8 @@ const Navbar = () => {
                   navigate('create-campaign')
                 }
                 else {
-                  connect();
+                  connect()
+                
                 }
               }}
             />

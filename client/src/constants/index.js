@@ -26,7 +26,7 @@ export const navlinks = [
   {
     name: 'logout',
     imgUrl: logout,
-    link:  '/home',
+    link:  '/dashboard',
   
   },
 ];

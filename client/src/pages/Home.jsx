@@ -26,7 +26,6 @@ const Home = () => {
     console.log(filterarray)
     setCampaigns(filterarray);
     setIsLoading(false);
-
   }
 
   useEffect(() => {
@@ -37,6 +36,7 @@ const Home = () => {
   }, [address, contract]);
 
 
+ 
 
   return (<DisplayCampaigns title="All Campaigns"
     isLoading={isLoading}

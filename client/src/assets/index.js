@@ -23,7 +23,7 @@ import creatoricon from './creatoricon.png'
 import paymentreq from './paymentreq.png'
 import logo2 from './logo2.png'
 import notfound from './404.png'
-
+import underconstruct from './underconstruct.png'
 
 
 export {
@@ -51,5 +51,6 @@ export {
   creatoricon,
  paymentreq,
  logo2,
- notfound
+ notfound,
+ underconstruct
 };

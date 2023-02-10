@@ -32,22 +32,12 @@ const CreateRequest = () => {
       if (exists) {
         if (address === state.owner) {
           if (state.owner != form.recipient) {
-            if (state.amountCollected > form.goal) {
-              if (form.goal > 0) {
+        
+              
                 setIsLoading(true)
                 await createRequest({ ...form, campaignId: state.pId, goal: ethers.utils.parseUnits(form.goal, 18) })
                 setIsLoading(false);
                 navigate(`/view-request/${state.pId}`, { state: state });
-              }
-              else {
-                alert('Cant be zero')
-                setForm({ ...form, goal: '' })
-              }
-            }
-            else {
-              alert("Request Amount should be less than amount collected")
-              setForm({ ...form, goal: '' });
-            }
           }
           else {
             alert('Owner address cant be used as recipient address.')

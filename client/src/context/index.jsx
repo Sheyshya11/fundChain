@@ -9,7 +9,7 @@ import { useParams } from 'react-router-dom';
 const StateContext = createContext();
 
 export const StateContextProvider = ({ children }) => {
-  const { contract } = useContract('0xc48709749D6db647760f9ba9183A99eFD0f3c89D');
+  const { contract } = useContract('0x4b9c0345b6a9723D6f518c0750412cD45b5dAd01');
   const { mutateAsync: createCampaign } = useContractWrite(contract, 'createCampaign');
   const { mutateAsync: createRequest } = useContractWrite(contract, 'createRequest');
 
@@ -47,6 +47,8 @@ export const StateContextProvider = ({ children }) => {
       target: ethers.utils.formatEther(campaign.target.toString()),
       deadline: campaign.deadline.toNumber(),
       amountCollected: ethers.utils.formatEther(campaign.amountCollected.toString()),
+      amountReleased: ethers.utils.formatEther(campaign.amountReleased.toString()),
+      validFund: ethers.utils.formatEther(campaign.validFund.toString()),
       image: campaign.image,
       pId: i
     }));
@@ -88,7 +90,10 @@ export const StateContextProvider = ({ children }) => {
     recipient: request.recipient, 
     image: request.image,
     campaignId: request.campaignId.toNumber(),
-    rId:i,
+    voteCount: request.voteCount.toNumber(),
+    approved: request.approved,
+    complete: request.complete,
+    rId: i,
   }));
 
   return parsedRequests;
@@ -106,14 +111,14 @@ export const StateContextProvider = ({ children }) => {
 
   const donate = async (pId, amount) => {
     const data = await contract.call('donateToCampaign', pId, { value: ethers.utils.parseEther(amount)});
-
     return data;
   }
+ 
 
   const getDonations = async (pId) => {
     const donations = await contract.call('getDonators', pId);
     const numberOfDonations = donations[0].length;
-
+    console.log(donations)
     const parsedDonations = [];
 
     for(let i = 0; i < numberOfDonations; i++) {
@@ -135,6 +140,37 @@ export const StateContextProvider = ({ children }) => {
     }
    
   }
+
+  const approveRequest = async(rId)=>{
+    try{
+      const data = await contract.call('voteForRequest',rId);
+      console.log("Successfully approved request",data);
+    }
+    catch(error){
+      console.log("Error approving request",error);
+    }
+    
+  }
+  
+  const getVoters = async(rId)=>{
+    const voters = await contract.call('getVoter', rId);
+    const numberOfVoters = voters.length;
+
+    const parsedVoters = [];
+
+    for(let i = 0; i < numberOfVoters; i++) {
+      parsedVoters.push({
+        voter: voters[i]
+      })
+    }
+
+    return parsedVoters;
+  }
+
+  const finalizeRequest = async(rId, amount)=>{
+    const data = await contract.call('finalizeRequest', rId, { value: ethers.utils.parseEther(amount)})
+    return data;
+  }
   return (
     <StateContext.Provider
       value={{
@@ -150,7 +186,11 @@ export const StateContextProvider = ({ children }) => {
         donate,
         getDonations,
         deleteCampaign,
-        getUserRequests
+        getUserRequests,
+        approveRequest,
+        getVoters,
+        finalizeRequest,
+      
     }}
     >
       {children}

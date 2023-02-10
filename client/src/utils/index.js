@@ -21,17 +21,6 @@ export const checkIfImage = (url, callback) => {
   img.onerror = () => callback(false);
 };
 
-export const checkIfdonator = (adres,length,arr) =>{
-  let i;
-  for (i=0;i<length;i++)
-  {
-    if (adres===arr[i]){
-      return true
-    }
-    else return false;
-  }
-  
-}
 
 export const truncate = (text, startChars, endChars, maxLength) => {
   if (text.length > maxLength) {
