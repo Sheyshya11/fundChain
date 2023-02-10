@@ -16,9 +16,9 @@
   ```
 - Create a .env file in the third-web folder and insert your Metamask private key
 
-```bash
-PRIVATE_KEY=XXXXXXX
-```
+  ```bash
+  PRIVATE_KEY=XXXXXXX
+  ```
 - In the third-web folder, build and deploy
   
   ```bash
