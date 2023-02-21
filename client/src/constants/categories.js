@@ -18,6 +18,17 @@ export const Categories = [
         label: "Health",
         value: "Health",
       },
+      {
+        id:4,
+        label: "Environment",
+        value: "Environment",
+      },
+      {
+        id:5,
+        label: "Arts",
+        value: "Arts",
+      },
+      
 
 
 ]

@@ -1,10 +1,13 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { ethers } from 'ethers';
 import { useStateContext } from '../context';
 import { money } from '../assets';
 import { CustomButton, FormField, Loader, ErrorBox } from '../components';
 import { checkIfImage } from '../utils';
+import {toast, ToastContainer} from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 
 
 
@@ -13,12 +16,14 @@ const CreateCampaign = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [loadError,setLoadError] =useState(false);
   const { createCampaign } = useStateContext();
-  const [values,setValue]=useState();
+  const [values,setValue]=useState(null);
+  const [types,setType]=useState(null);
   const [form, setForm] = useState({
     name: '',
     title: '',
     description: '',
     category: '',
+    openFunding: '',
     target: '', 
     deadline: '',
     image: ''
@@ -34,9 +39,33 @@ const CreateCampaign = () => {
   const handleSelectfieldCHange =(e) =>{
     setValue(e.target.value);
   }
+  const handleSelectTypeCHange =(e) =>{
+    setType(e.target.value==='true');
+  }
 
-  console.log(values)
+ useEffect(()=>{
+  setValue('Education');
+ },[])
  
+
+ useEffect(()=>{
+  setType(false);
+ },[])
+ console.log(types)
+
+ const notify = (message) => {
+  toast.error(message, {
+    position: "top-center",
+    autoClose: 1500,
+    hideProgressBar: false,
+    closeOnClick: true,
+    pauseOnHover: true,
+    draggable: true,
+    progress: undefined,
+    theme: "light",
+  });
+
+}
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -47,7 +76,7 @@ const CreateCampaign = () => {
       if(exists) {
        
         setIsLoading(true)
-        await createCampaign({ ...form, category: values, target: ethers.utils.parseUnits(form.target, 18)} )
+        await createCampaign({ ...form, category: values, openFunding: types, target: ethers.utils.parseUnits(form.target, 18)} )
         setIsLoading(false);        
         navigate('/dashboard');
       } else {
@@ -58,14 +87,11 @@ const CreateCampaign = () => {
     })}
     else{
 
-      alert('Deadline should be in the future')
+      notify('Deadline should be in the future')
       setForm({ ...form, deadline: '' });
      
     }
-   
-    console.log(loadError)
-
-     
+    console.log(loadError)     
   }
     
   
@@ -117,10 +143,18 @@ const CreateCampaign = () => {
         </div>
 
         <div className="flex flex-wrap gap-[40px]">
+
+          <FormField 
+            labelName="Type *"
+            isSelectType
+            value={types}
+            handleChange={(e) => handleSelectTypeCHange(e)}
+           />
+
           <FormField 
             labelName="Goal *"
             placeholder="ETH 0.50"
-            inputType="text"
+            inputType="number"
             value={form.target}
             handleChange={(e) => handleFormFieldChange('target', e)}
           />
@@ -150,6 +184,15 @@ const CreateCampaign = () => {
             />
           </div>
       </form>
+      <ToastContainer
+          position="top-center"
+          autoClose={2000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}        
+          theme="light"
+        />
     </div>
   )
 }

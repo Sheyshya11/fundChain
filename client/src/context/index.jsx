@@ -1,22 +1,28 @@
 import React, { useContext, createContext } from 'react';
 
-import { useAddress, useContract, useMetamask, useContractWrite, useDisconnect } from '@thirdweb-dev/react';
+import { useAddress, useContract, useMetamask, useContractWrite, useDisconnect,useSDK } from '@thirdweb-dev/react';
 import { ethers } from 'ethers';
 import { EditionMetadataWithOwnerOutputSchema } from '@thirdweb-dev/sdk';
-import { useParams } from 'react-router-dom';
+
 
 
 const StateContext = createContext();
 
 export const StateContextProvider = ({ children }) => {
-  const { contract } = useContract('0x4b9c0345b6a9723D6f518c0750412cD45b5dAd01');
+  const { contract } = useContract('0x663990cfc3852400bD93c54793755e44463700dd');
   const { mutateAsync: createCampaign } = useContractWrite(contract, 'createCampaign');
   const { mutateAsync: createRequest } = useContractWrite(contract, 'createRequest');
 
+  const sdk = useSDK();
   const address = useAddress();
   const connect = useMetamask();
   const disconnect = useDisconnect();
 
+  const getbalance=async()=>{
+    const balance = await sdk.wallet.balance();
+      return balance;
+  }
+  
   const publishCampaign = async (form) => {
     try {
       const data = await createCampaign([
@@ -24,6 +30,7 @@ export const StateContextProvider = ({ children }) => {
         form.title, // title
         form.description, // description
         form.category,
+        form.openFunding,
         form.target,
         new Date(form.deadline).getTime(), // deadline,
         form.image
@@ -35,7 +42,6 @@ export const StateContextProvider = ({ children }) => {
     }
   }
  
-
   const getCampaigns = async () => {
     const campaigns = await contract.call('getCampaigns');
 
@@ -44,6 +50,7 @@ export const StateContextProvider = ({ children }) => {
       title: campaign.title,
       description: campaign.description,
       category: campaign.category,
+      openFunding: campaign.openFunding,
       target: ethers.utils.formatEther(campaign.target.toString()),
       deadline: campaign.deadline.toNumber(),
       amountCollected: ethers.utils.formatEther(campaign.amountCollected.toString()),
@@ -63,6 +70,7 @@ export const StateContextProvider = ({ children }) => {
 
     return filteredCampaigns;
   }
+
   const publishRequest = async(form)=>{
     try{
       const data = await createRequest([
@@ -80,6 +88,7 @@ export const StateContextProvider = ({ children }) => {
     }
     
   }
+
   const getRequests = async() =>{
   const requests = await contract.call('getRequests')
   const parsedRequests = requests.map((request, i) => ({
@@ -99,22 +108,20 @@ export const StateContextProvider = ({ children }) => {
   return parsedRequests;
   }
  
-
   const getUserRequests = async () => {
     const allRequests = await getRequests();
 
-    const filteredRequests = allRequests.filter((request) => request.creator === address);
+    const filteredRequests = allRequests.filter((request) => request.creator === address );
  
 
     return filteredRequests;
   }
 
-  const donate = async (pId, amount) => {
-    const data = await contract.call('donateToCampaign', pId, { value: ethers.utils.parseEther(amount)});
+  const donate = async (pId, amount, name) => {
+    const data = await contract.call('donateToCampaign', pId, name, { value: ethers.utils.parseEther(amount)});
     return data;
   }
  
-
   const getDonations = async (pId) => {
     const donations = await contract.call('getDonators', pId);
     const numberOfDonations = donations[0].length;
@@ -123,8 +130,9 @@ export const StateContextProvider = ({ children }) => {
 
     for(let i = 0; i < numberOfDonations; i++) {
       parsedDonations.push({
-        donator: donations[0][i],
-        donation: ethers.utils.formatEther(donations[1][i].toString())
+        donatorname: donations[0][i],
+        donator: donations[1][i],
+        donation: ethers.utils.formatEther(donations[2][i].toString())
       })
     }
 
@@ -171,6 +179,54 @@ export const StateContextProvider = ({ children }) => {
     const data = await contract.call('finalizeRequest', rId, { value: ethers.utils.parseEther(amount)})
     return data;
   }
+
+  const edit = async(pId, description)=>{
+    try{
+    const data = await contract.call('editDescription',pId,description);
+    console.log("Successfully edited",data)
+    }catch(error){
+      console.log("Failed to edit",error)
+    }
+
+  }
+
+  /* const refund = async(pId)=>{
+    try{
+       const data = await contract.call('refund',pId);
+      console.log('Successfully refunded',data)}
+       catch(error){
+        console.log('Failed to refund',error)
+       }
+
+  } */
+
+  const hasVoted = async(pId)=>{
+    try{
+    const data = await contract.call('hasVoted',pId);
+    console.log('Donator has voted',data);
+    }
+    catch(error){
+      console.log('Not voted',error)
+    }
+
+  }
+ 
+  const getVoted = async(pId)=>{
+    const voted = await contract.call('getVoted',pId);
+    const numberOfVoted = voted.length;
+
+    const parsedVoted = [];
+
+    for(let i = 0; i < numberOfVoted; i++) {
+      parsedVoted.push({
+        voted: voted[i]
+      })
+    }
+     
+    return parsedVoted;
+
+  }
+ 
   return (
     <StateContext.Provider
       value={{
@@ -190,6 +246,11 @@ export const StateContextProvider = ({ children }) => {
         approveRequest,
         getVoters,
         finalizeRequest,
+        edit,
+        getbalance,
+       /*  refund, */
+        hasVoted,
+        getVoted
       
     }}
     >

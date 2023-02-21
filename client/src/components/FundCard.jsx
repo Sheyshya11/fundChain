@@ -4,6 +4,12 @@ import { daysLeft } from '../utils';
 
 const FundCard = ({ owner, title, description, category, target, deadline, amountCollected, image, handleClick  }) => {
   const remainingDays = daysLeft(deadline);
+  const difference = (new Date(deadline).getTime()) - Date.now();
+  const hour = difference / (3600 * 1000);
+  const minute = difference/(60 * 1000 )
+  const remainingMinute = minute.toFixed(0)
+  const remainingHour = hour.toFixed(0)
+
   
   return (
     <div className="sm:w-[288px] w-full rounded-[15px] bg-[#1c1c24] cursor-pointer" onClick={handleClick}>
@@ -26,8 +32,12 @@ const FundCard = ({ owner, title, description, category, target, deadline, amoun
             <p className="mt-[3px] font-epilogue font-normal text-[12px] leading-[18px] text-[#808191] sm:max-w-[120px] truncate">Raised of {target}</p>
           </div>
           <div className="flex flex-col">
-            <h4 className="font-epilogue font-semibold text-[14px] text-[#b2b3bd] leading-[22px]">{remainingDays == '-0' ? 'Expired' : remainingDays}</h4>
-            <p className="mt-[3px] font-epilogue font-normal text-[12px] leading-[18px] text-[#808191] sm:max-w-[120px] truncate">Days Left</p>
+            <h4 className="font-epilogue font-semibold text-[14px] text-[#b2b3bd] leading-[22px]">
+            {remainingMinute < 0 ? 'Expired' : <>{remainingHour < 24 ? remainingHour :
+            remainingDays}</>}
+              </h4>
+            <p className="mt-[3px] font-epilogue font-normal text-[12px] leading-[18px] text-[#808191] sm:max-w-[120px] truncate">{remainingMinute < 0 ? '': <>{remainingHour < 24 ? "Hours Left" :
+           "Days Left"}</>}</p>
           </div>
         </div>
 

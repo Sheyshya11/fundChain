@@ -28,7 +28,7 @@ const DisplayCampaigns = ({ title, isLoading, campaigns }) => {
             You have not created any campigns yet
           </p>
         )}
-         
+        
         {!isLoading && campaigns.length > 0 && campaigns.map((campaign) => <FundCard
           key={campaign.pId}
           {...campaign}

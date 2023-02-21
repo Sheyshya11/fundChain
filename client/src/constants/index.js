@@ -12,13 +12,6 @@ export const navlinks = [
     link: '/create-campaign',
   },
   {
-    name: 'request',
-    imgUrl: payment,
-    link: '/viewAllRequest',
-    disable: ''
-  },
-
-  {
     name: 'profile',
     imgUrl: profile,
     link: '/profile',

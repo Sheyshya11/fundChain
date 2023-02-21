@@ -11,3 +11,5 @@ export {default as RequestBox} from './RequestBox.jsx'
 export {default as ShareCampaign} from './shareCampaign';
 export {default as ErrorBox} from './ErrorBox'
 export {default as VoteSucess} from './VoteSucess'
+export {default as Loading} from './Loading'
+

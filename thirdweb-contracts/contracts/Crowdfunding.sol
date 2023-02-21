@@ -14,8 +14,11 @@ contract CrowdFunding {
         uint256 validFund;
         string image;
         address[] donators;
+        bool[] voted;
         address[] uniqueDonators;
         uint256[] donations;
+        string[] donatornames;
+        bool openFunding;
     }
 
     mapping(uint256 => Campaign) public campaigns;
@@ -26,6 +29,7 @@ contract CrowdFunding {
         string memory _title,
         string memory _description,
         string memory _category,
+        bool _openFunding,
         uint256 _target,
         uint256 _deadline,
         string memory _image
@@ -36,11 +40,12 @@ contract CrowdFunding {
             _deadline > block.timestamp,
             "The deadline should be a date in the future."
         );
-
+                
         campaign.owner = _owner;
         campaign.title = _title;
         campaign.description = _description;
         campaign.category = _category;
+        campaign.openFunding = _openFunding;
         campaign.target = _target;
         campaign.deadline = _deadline;
         campaign.amountCollected = 0;
@@ -105,7 +110,7 @@ contract CrowdFunding {
         return numberOfRequests - 1;
     }
 
-    function donateToCampaign(uint256 _id) public payable {
+    function donateToCampaign(uint256 _id, string memory _name) public payable {
         uint256 amount = msg.value;
 
         Campaign storage campaign = campaigns[_id];
@@ -114,14 +119,18 @@ contract CrowdFunding {
             msg.sender != campaign.owner,
             "Campaign owner cannot donate to their own campaign."
         );
+        if(!campaign.openFunding){
         require(
             amount <= (campaign.target - campaign.amountCollected),
             "Donation exceeds campaign target."
-        );
+        );}
+
         require(
             block.timestamp < campaign.deadline,
             "Deadline have been finished"
         );
+       
+        
          bool isNewDonator = true;
         for (uint256 i = 0; i < campaign.donators.length; i++) {
             if (campaign.donators[i] == msg.sender) {
@@ -133,10 +142,16 @@ contract CrowdFunding {
         if (isNewDonator) {
             campaign.uniqueDonators.push(msg.sender);
         }
+        
+        if((campaign.openFunding) && (campaign.amountCollected > campaign.target)){
+            campaign.validFund = campaign.amountCollected;
+        }
+        bool isvoted = false;
 
         campaign.donators.push(msg.sender);
         campaign.donations.push(amount);
-
+        campaign.donatornames.push(_name);
+        campaign.voted.push(isvoted);
 
         (bool sent, ) = payable(campaign.owner).call{value: amount}("");
 
@@ -148,9 +163,9 @@ contract CrowdFunding {
     function getDonators(uint256 _id)
         public
         view
-        returns (address[] memory, uint256[] memory)
+        returns (string[] memory, address[] memory, uint256[] memory)
     {
-        return (campaigns[_id].donators, campaigns[_id].donations);
+        return (campaigns[_id].donatornames,campaigns[_id].donators, campaigns[_id].donations);
     }
 
     function getCampaigns() public view returns (Campaign[] memory) {
@@ -182,14 +197,65 @@ contract CrowdFunding {
             campaigns[_id].owner == msg.sender,
             "Only the owner can delete a campaign."
         );
+
+        require(campaigns[_id].amountReleased == 0,
+        "Some funds already released. Cant delete");
+
+        require(campaigns[_id].donations.length == 0,
+        "Donation already started. Can't delete it anymore" );
+
         require(_id < numberOfCampaigns, "campaign not found");
+
         delete campaigns[_id];
         for (uint256 i = 0; i < numberOfRequests; i++) {
             if (requests[i].campaignId == _id) {
                 delete requests[i];
             }
         }
+       
     }
+
+ function refund(uint256 _id) public payable {
+    Campaign storage campaign = campaigns[_id];
+
+    /* require(block.timestamp > campaign.deadline, "Refund is not available yet."); */
+    require(campaign.amountReleased == 0, "Refund is not available because the campaign has already used some of the funds.");
+
+    uint256 amountToRefund = 0;
+     uint256 indexToRemove = campaign.donators.length;
+    for (uint256 i = 0; i < campaign.donators.length; i++) {
+        if (campaign.donators[i] == msg.sender) {
+            if (campaign.donations[i] > 0) {
+
+              indexToRemove = i;
+
+             for( i = indexToRemove; i < campaign.donators.length-1; i++){
+               campaign.donatornames[i] = campaign.donatornames[i+1];      
+               campaign.donators[i] = campaign.donators[i+1];      
+               campaign.donations[i] = campaign.donations[i+1];      
+               }
+                       campaign.donatornames.pop();
+                       campaign.donators.pop();
+                       campaign.donations.pop();
+  
+                amountToRefund += campaign.donations[i];
+                campaign.donations[i] = 0;
+             
+              
+            }
+        }
+    }
+
+    if (amountToRefund > 0) {
+        (bool sent, ) = payable(msg.sender).call{value: amountToRefund}("");
+
+        require(sent, "Failed to send refund.");
+    
+      /*    delete campaign.donators[indexToRemove];
+        delete campaign.donations[indexToRemove];
+        delete campaign.donatornames[indexToRemove]; */
+    }
+}
 
     function voteForRequest(uint256 _requestId) public {
         Request storage request = requests[_requestId];
@@ -214,24 +280,42 @@ contract CrowdFunding {
         );
         require(
             request.complete==false,
-            "Request is alredy approved"
+            "Request is already approved"
 
         );
+        require(request.voteCount !=    //changed from donators to uniquedonator
+            campaigns[request.campaignId].uniqueDonators.length / 2 + 1,
+            "Vote count already reached");
        
         request.voters.push(msg.sender);
         request.voteCount = request.voteCount + 1;
+       
 
         if (
-            request.voteCount ==
-            campaigns[request.campaignId].donators.length / 2 + 1
+            (request.voteCount ==  //made changes here, added validation if amount collected is greater than request goal or not
+            campaigns[request.campaignId].uniqueDonators.length / 2 + 1) && (campaigns[request.campaignId].amountCollected>=request.goal)
         ) {
             request.approved = true;
         }
     }
 
+    function hasVoted(uint256 _id) public {
+     Campaign storage campaign = campaigns[_id];
+     for (uint256 i=0;i<campaign.donators.length;i++){
+     if (campaign.donators[i] == msg.sender){   
+         campaign.voted[i] = true;
+        }
+     }
+    }
+    function getVoted(uint256 _id) public view returns (bool[] memory){
+        return campaigns[_id].voted;
+    }
+
     function getVoter(uint256 _id) public view returns (address[] memory){
         return requests[_id].voters;
     }
+
+   
 
     function finalizeRequest(uint256 _id) public payable {
     Request storage request = requests[_id];
@@ -263,5 +347,12 @@ contract CrowdFunding {
         campaigns[request.campaignId].amountReleased += amount;
         request.complete = true;
     }
-}   
+} 
+
+ function editDescription(uint256 _id, string memory _newDescription) public {
+        // check if the campaign exists and if the caller is the owner
+        Campaign storage campaign = campaigns[_id];
+        require(campaign.owner == msg.sender, "Only the owner can edit the campaign");
+        campaign.description = _newDescription;
+    }
 }

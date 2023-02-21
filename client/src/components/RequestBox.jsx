@@ -6,6 +6,9 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { paymentreq } from '../assets';
 import { truncate } from '../utils';
 import Loader from './Loader';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import Loading from './Loading';
 
 
 
@@ -21,45 +24,50 @@ const Icon = ({ styles, name, imgUrl, isActive, disabled, handleClick }) => (
   </div>
 )
 
-const RequestBox = ({ rId, campaignId, creator, title, description, goal, recipient, image, approved,complete, voteCount, handleClick }) => {
-  const { address, connect, getDonations, contract, approveRequest, finalizeRequest, getVoters, getRequests } = useStateContext();
+const RequestBox = ({ rId, campaignId, creator, title, description, goal, recipient, image, amountCollected, amountReleased, approved, complete, voteCount, handleClick }) => {
+  const { address, connect, getDonations, contract, approveRequest, finalizeRequest, getVoters } = useStateContext();
   const { state } = useLocation();
+  const { id } = useParams();
   const navigate = useNavigate();
   const [donations, setDonations] = useState([]);
- 
-  const [voters,setVoters] = useState([])
+  const [isWaiting, setIsWaiting] = useState(false)
+  const intId = parseInt(id)
+  const [voters, setVoters] = useState([])
+/*   const [voted, setVoted] = useState([]) */
   const [uniqueDonator, setUniqueDonator] = useState([]);
-  let [count, setCount] = useState(voteCount)
-  
-  const [isLoading, setIsLoading] = useState(false);
-  const DonationNumber = (Math.floor(donations.length / 2 + 1))
-  
 
+  let [count, setCount] = useState(voteCount)
+  const [isLoading, setIsLoading] = useState(false);
+
+  const DonationNumber = (Math.floor(uniqueDonator.length / 2 + 1))
+   amountCollected = amountCollected - amountReleased;
 
   const fetchDonators = async () => {
-    setIsLoading(true)
-    const data = await getDonations(rId);
-    const filterdata= data.map(d=>d.donator)
-    const uniquedata = ()=>{
+    setIsWaiting(true)
+    const data = await getDonations(intId);
+    const filterdata = data.map(d => d.donator)
+    const uniquedata = () => {
       return [...new Set(filterdata)];
     }
     setUniqueDonator(uniquedata)
     setDonations(data);
-    setIsLoading(false)
-  }
+    setIsWaiting(false)
 
+  }
+console.log()
   useEffect(() => {
     if (contract) {
       fetchDonators();
     }
-  }, [contract, address ])
+  }, [contract, address])
 
 
-  const fetchVoters=async()=>{
+
+  const fetchVoters = async () => {
     const data = await getVoters(rId);
-    const newdata= data.map(voter=>voter.voter)
-    setVoters(newdata)    
-  
+    const newdata = data.map(voter => voter.voter)
+    setVoters(newdata)
+
   }
 
   useEffect(() => {
@@ -69,62 +77,91 @@ const RequestBox = ({ rId, campaignId, creator, title, description, goal, recipi
   }, [contract, address])
 
 
+  const notify = (message) => {
+    toast.error(message, {
+      position: "top-center",
+      autoClose: 1000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "light",
+    });
+
+  }
+
+
   const handleVote = async (rId) => {
- 
+
     if (uniqueDonator.includes(address)) {
       if (voteCount <= DonationNumber) {
-        if(!voters.includes(address)) {
-        setIsLoading(true)
-         await approveRequest(rId);
-          setCount(count+1); 
-          navigate(`/request-details/${rId}`)  
-        setIsLoading(false)
-      
-        
-      }
-      else {
-        alert('Already voted')
-      }}
-      else{
-      alert('voting reached')
-      }
-    
-  }
-    else {
-      alert("only donator can vote");
-    }
-   
-  };
+        if (!voters.includes(address)) {
+          setIsLoading(true)
+          await approveRequest(rId);
+       /*    await hasVoted(campaignId); */
+          setCount(count + 1);
+          navigate(`/request-details/${rId}`)
+          setIsLoading(false)
 
-  
 
-  const handleFinalize = async (rId, goal) => {
-    if (address) {
-      if (creator == address) {
-        if(!complete){
-        setIsLoading(true)
-        await finalizeRequest(rId, goal);
-        navigate(`/request-details/${rId}`)
-        setIsLoading(false)}
-        else{
-          alert('Request is already approved.')
+        }
+        else {
+          notify('Already voted');
         }
       }
       else {
-        alert('Only creator can finalize request')
+        notify('Voting reached')
+      }
+
+    }
+    else {
+      notify("Only Donator can vote");
+    }
+
+  };
+
+
+console.log(complete)
+  const handleFinalize = async (rId, goal) => {
+    if (address) {
+      if (creator == address) {
+        if (!complete) {
+          if (DonationNumber == voteCount) {
+            if (amountCollected >= goal) {
+
+              setIsLoading(true)
+              await finalizeRequest(rId, goal);
+              navigate(`/request-details/${rId}`)
+              setIsLoading(false)
+            }
+            else {
+              notify('Not sufficient fund')
+            }
+          }
+          else {
+            notify('Not approved yet');
+          }
+        }
+        else {
+          notify('Request is already approved.')
+        }
+      }
+      else {
+        notify('Only creator can finalize request')
       }
     }
     else {
       connect();
     }
-    
+
   }
-  
+
   return (
 
     <div className='flex flex-row justify-between items-center w-full rounded-[15px] px-4 h-[90px]  bg-[#1c1c24] text-blue-500 ' >
       {isLoading && <Loader />}
-   
+      {isWaiting && <Loading/>}
       <div className='flex items-center gap-4 cursor-pointer w-[200px]' onClick={handleClick}>
         <Icon styles="bg-gray-400 shadow-secondary" imgUrl={paymentreq} />
         <h1 className='uppercase font-bold text-white'>{truncate(title, 4, 4, 11)}</h1>
@@ -135,61 +172,63 @@ const RequestBox = ({ rId, campaignId, creator, title, description, goal, recipi
 
       </div>
       <div>
-        {approved ?  <p>{count}/{count}</p>:  <p>{count}/{DonationNumber}</p>}
-       
+        {complete ? <p>{count}/{count}</p> : <p>{count}/{DonationNumber}</p>}
+
       </div>
       <div className='flex gap-4'>
-       
-        {address == creator  ?
-        <>
+
+        {address == creator ?
+          <>
             {complete ? <CustomButton
-            btnType="button"
-            title="Finalize"
-            styles={"bg-gray-300 text-black sm:min-w-[140px] min-w-[90px] box-border px-4 py-4"}
-            
-          />:<CustomButton
-            btnType="button"
-            title="Finalize"
-            styles={"bg-[#0b5b8d] sm:min-w-[140px] min-w-[90px] box-border px-4 py-4"}
-            handleClick={() => {
-              if (address) handleFinalize(rId, goal)
-              else connect();
-            }}
-          /> }
-           </>:
-           <>
-           {approved ?  <CustomButton
-           btnType="button"
-           title="Approve"
-           styles={"bg-gray-300 sm:w-[140px] text-black min-w-[90px] box-border px-4 py-4"}
-          
-         /> :
-         <CustomButton
-         btnType="button"
-         title="Approve"
-         styles={" bg-[#7024ec]  sm:w-[140px] min-w-[90px] box-border px-4 py-4"}
-         handleClick={() => {
-           if (address) {
-             handleVote(rId)}
-           else connect()
-         }}
-       />
-         }
-         </>
-         
+              btnType="button"
+              title="Finalize"
+              styles={"bg-gray-300 text-black sm:min-w-[140px] min-w-[90px] box-border px-4 py-4"}
 
+            /> : <CustomButton
+              btnType="button"
+              title="Finalize"
+              styles={"bg-[#0b5b8d] sm:min-w-[140px] min-w-[90px] box-border px-4 py-4"}
+              handleClick={() => {
+                if (address) handleFinalize(rId, goal)
+                else connect();
+              }}
+            />}
+          </> :
+          <>
+            {complete ? <CustomButton
+              btnType="button"
+              title="Approve"
+              styles={"bg-gray-300 sm:w-[140px] text-black min-w-[90px] box-border px-4 py-4"}
 
+            /> :
+              <CustomButton
+                btnType="button"
+                title="Approve"
+                styles={" bg-[#7024ec]  sm:w-[140px] min-w-[90px] box-border px-4 py-4"}
+                handleClick={() => {
+                  if (address) {
+                    handleVote(rId)
+                  }
+                  else connect()
+                }}
+              />
+              
+            }
+          </>
         }
+        <ToastContainer
+          position="top-center"
+          autoClose={2000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}        
+          theme="light"
+        />
 
       </div>
-
-
-
-
     </div>
-
   )
-
 }
 
 export default RequestBox

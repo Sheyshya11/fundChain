@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Link, useNavigate, useLocation, useLinkClickHandler } from 'react-router-dom';
 
 import { useStateContext } from '../context';
-import { CustomButton } from './';
+import { CustomButton } from '../components';
 import { logo, menu, search, icon, logo2 } from '../assets';
 import { navlinks } from '../constants';
 import { truncate } from '../utils';
@@ -12,9 +12,21 @@ const Navbar = () => {
   const navigate = useNavigate();
   const [isActive, setIsActive] = useState('dashboard');
   const [toggleDrawer, setToggleDrawer] = useState(false);
-  const { connect, address } = useStateContext();
+  const { connect, address, getbalance, contract } = useStateContext();
+  const [Balance,setBalance] = useState('');
   const { pathname } = useLocation();
  
+  
+  const getCurrentBalance=async()=>{
+ const data= await getbalance();
+ const balance = data.displayValue.substring(0,6)
+ setBalance(balance)
+  }
+useEffect(()=>{
+  if(address){
+    getCurrentBalance();
+  }
+},[address,contract,Balance])
 
 
   return (
@@ -35,12 +47,15 @@ const Navbar = () => {
         {address ? <CustomButton
           btnType="button"
           title={truncate(address, 4, 4, 11)}
-          styles='bg-[#7024ec]' //8c6dfd
+          styles='bg-[#7024ec] rounded-[5px]' //8c6dfd
           handleClick={() => {
             navigate('/dashboard')
 
           }}
         /> : ''}
+         {address ? <div className='font-epilogue flex justify-center items-center font-semibold text-[16px]  bg-[#9F2B68] leading-[26px] text-white min-h-[52px] px-4 rounded-[5px] '>
+          <p className="flex">{Balance} ETH</p>
+        </div> : ''}
 
         <CustomButton
           btnType="button"
@@ -52,7 +67,9 @@ const Navbar = () => {
               connect();
             }
           }}
-        />
+        /> 
+     
+        
 
         <Link to="/profile">
           <div className="w-[52px] h-[52px] rounded-full bg-[#2c2f32] flex justify-center items-center cursor-pointer">

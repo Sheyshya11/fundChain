@@ -2,26 +2,43 @@ import React, { useState, useEffect} from 'react'
 import { useStateContext} from '../context'
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { loader } from '../assets';
-import { RequestBox } from '../components';
+import { RequestBox, CustomButton } from '../components';
 import { withdraw } from '../assets';
 import { Icons } from 'react-toastify';
 
 const DisplayRequests = () => {
+  const { address, contract, getRequests, getCampaigns} = useStateContext();
   const [isLoading, setIsLoading] = useState(false);
   const [requests, setRequests] = useState([]);
   const [donations, setDonations] = useState([]);
+  const [campaigns, setCampaigns] = useState({});
   const [donators,setDonators] = useState([]);
- 
-
   const { state } = useLocation();
   const { id } = useParams();
   const navigate = useNavigate();
-  const { address, contract, getRequests, getDonations} = useStateContext();
+
  const intId = parseInt(id)
+
   const handleNavigate = (request) => {
     navigate(`/request-details/${request.rId}`, { state: request })
   }
- 
+  const fetchCampaigns = async () => {
+   
+    const data = await getCampaigns();
+    const filterarray = data.filter((req) => {
+      return req.pId==intId;
+    });
+    let [filteredObject] = filterarray;
+    setCampaigns(filteredObject);
+    
+    
+  }
+  useEffect(()=>{
+    if(address){
+      fetchCampaigns();
+    }
+  },[address,contract])
+
 
   const fetchRequests = async () => {
     setIsLoading(true);
@@ -42,26 +59,20 @@ const DisplayRequests = () => {
     }
   }, [address, contract]);
 
- /*  const fetchDonators = async () => {
-    setIsLoading(true)
-    const data = await getDonations(id);
-    setDonations(data);
-    const newArr = data.map(donate => donate.donator)
-    setDonators(newArr)
-    setIsLoading(false)
-  }
-
-  useEffect(() => {
-    if (contract) {
-      fetchDonators();
-    }
-  }, [contract, address])
- */
-
 
   return ( <div>
-    <h1 className="font-epilogue font-semibold text-[18px] text-white text-left">{`All Requests`} ({requests.length})</h1>
-
+    <div className='flex flex-row justify-between items-center'>
+    <h1 className="flex font-epilogue font-semibold text-[18px] text-white text-left">{`All Requests`} ({requests.length})</h1>
+     <CustomButton
+     btnType="button"
+     title="Go to Campaign Page"
+     styles="flex bg-[#008080]  min-h-[48px] items-center "
+     handleClick={()=>{
+        navigate(`/campaign-details/${campaigns.title}/${campaigns.pId}`)
+     }}
+     />
+     
+    </div>
     <div className="flex flex-wrap mt-[20px] gap-[26px]">
 
     
@@ -90,7 +101,7 @@ const DisplayRequests = () => {
 
       {!isLoading && requests.length === 0 && (
         <p className="font-epilogue font-semibold text-[14px] leading-[30px] text-[#818183]">
-          You have not created any requests yet
+          Request has not been created yet
         </p>
       )}
       
@@ -98,6 +109,8 @@ const DisplayRequests = () => {
       {!isLoading && requests.length > 0 && requests.map((request) => <RequestBox
         key={request.rId}
         rId={request.rId}
+        amountCollected={campaigns.amountCollected}
+        amountReleased={campaigns.amountReleased}
         {...request}
         handleClick={() => handleNavigate(request)}
       />)}

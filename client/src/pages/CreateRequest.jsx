@@ -1,16 +1,19 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ethers } from 'ethers';
 
 import { useStateContext } from '../context';
 import { CustomButton, FormField, Loader } from '../components';
 import { checkIfImage } from '../utils';
+import {toast, ToastContainer} from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const CreateRequest = () => {
   const navigate = useNavigate();
   const { state } = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const { address, createRequest } = useStateContext();
+  const[isValid,setIsValid] = useState(false)
 
   const [form, setForm] = useState({
     campaignId: '',
@@ -20,34 +23,58 @@ const CreateRequest = () => {
     recipient: '',
     image: ''
   });
+  const hexadecimalRegex = /^0x[0-9A-Fa-f]+$/;
 
+  const notify = (message) => {
+    toast.error(message, {
+      position: "top-center",
+      autoClose: 1000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "light",
+    });
+
+  }
   const handleFormFieldChange = (fieldName, e) => {
     setForm({ ...form, [fieldName]: e.target.value })
   }
+  
+  useEffect(() => {
+    setIsValid(hexadecimalRegex.test(form.recipient));
+  }, [form.recipient]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+   
     checkIfImage(form.image, async (exists) => {
       if (exists) {
         if (address === state.owner) {
           if (state.owner != form.recipient) {
-        
-              
+            if(isValid){       
+              if(form.goal <= state.validFund){
                 setIsLoading(true)
                 await createRequest({ ...form, campaignId: state.pId, goal: ethers.utils.parseUnits(form.goal, 18) })
                 setIsLoading(false);
-                navigate(`/view-request/${state.pId}`, { state: state });
+                navigate(`/view-request/${state.pId}`, { state: state });}
+              else{
+                notify('Greater than the collected amount.')
+              }}
+                else{
+                  notify('Invalid address')
+                }
           }
           else {
-            alert('Owner address cant be used as recipient address.')
+            notify('Owner address cant be used as recipient address.')
           }
         }
         else {
-          alert('Only owner can create Request');
+          notify('Only owner can create Request');
         }
       } else {
-        alert('Provide valid image URL')
+        notify('Provide valid image URL')
         setForm({ ...form, image: '' });
 
       }
@@ -81,7 +108,7 @@ const CreateRequest = () => {
         <FormField
           labelName="Amount *"
           placeholder="ETH 0.50"
-          inputType="text"
+          inputType="number"
           value={form.goal}
           handleChange={(e) => handleFormFieldChange('goal', e)}
         />
@@ -102,13 +129,23 @@ const CreateRequest = () => {
           handleChange={(e) => handleFormFieldChange('image', e)}
         />
 
-        <div className="flex justify-center items-center mt-[40px]">
+        <div className="flex justify-center items-center mt-[20px]">
           <CustomButton
             btnType="submit"
             title="Submit new Request"
             styles="bg-[#1dc071]"
+           
           />
         </div>
+        <ToastContainer
+          position="top-center"
+          autoClose={2000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}        
+          theme="light"
+        />
       </form>
     </div>
   )

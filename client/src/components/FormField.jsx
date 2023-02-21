@@ -1,7 +1,8 @@
 import React from 'react'
 import { Categories } from '../constants/categories'
+import { types } from '../constants/types'
 
-const FormField = ({ labelName, placeholder, inputType, isTextArea, isSelectArea, value, handleChange }) => {
+const FormField = ({ labelName, placeholder, inputType, isTextArea, isSelectArea, isSelectType, value, handleChange }) => {
   
   
   return (
@@ -11,7 +12,7 @@ const FormField = ({ labelName, placeholder, inputType, isTextArea, isSelectArea
       )}
     
       
-      {isTextArea ? (
+      {isTextArea ? 
         <textarea 
           required
           value={value}
@@ -20,8 +21,8 @@ const FormField = ({ labelName, placeholder, inputType, isTextArea, isSelectArea
           placeholder={placeholder}
           className="py-[15px] sm:px-[25px] px-[15px] outline-none border-[1px] border-[#3a3a43] bg-transparent font-epilogue text-white text-[14px] placeholder:text-[#4b5264] rounded-[10px] sm:min-w-[300px]"
         />
-      ) : (isSelectArea ? 
-        ( <div>
+       : isSelectArea ? 
+        <>
      
           <select
             required
@@ -37,8 +38,26 @@ const FormField = ({ labelName, placeholder, inputType, isTextArea, isSelectArea
              >{option.label}</option>
            ))}
          </select>
-         </div>):
-        (
+         </>: 
+        
+        isSelectType ? <>
+
+        <select
+            required
+            value={value}
+            onChange={handleChange}
+             className='py-[15px] sm:px-[25px] px-[15px] text-[14px] bg-transparent border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500'
+             >
+           {types.map((option) => (
+             <option 
+            
+             key={option.id}
+             value={option.value}
+             >{option.label}</option>
+           ))}
+         </select>
+         </> 
+              :
         <input 
           required
           value={value}
@@ -48,7 +67,8 @@ const FormField = ({ labelName, placeholder, inputType, isTextArea, isSelectArea
           placeholder={placeholder}
           className="py-[15px] sm:px-[25px] px-[15px] outline-none border-[1px] border-[#3a3a43] bg-transparent font-epilogue text-white text-[14px] placeholder:text-[#4b5264] rounded-[10px] sm:min-w-[300px]"
         />
-      ))}
+       
+      }
     </label>
   )
 }
