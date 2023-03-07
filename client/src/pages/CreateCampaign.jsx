@@ -4,101 +4,101 @@ import { ethers } from 'ethers';
 import { useStateContext } from '../context';
 import { money } from '../assets';
 import { CustomButton, FormField, Loader, ErrorBox } from '../components';
-import { checkIfImage } from '../utils';
-import {toast, ToastContainer} from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
+import { useStorageUpload } from "@thirdweb-dev/react";
 
 
 
 const CreateCampaign = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [loadError,setLoadError] =useState(false);
   const { createCampaign } = useStateContext();
-  const [values,setValue]=useState(null);
-  const [types,setType]=useState(null);
+  const [values, setValue] = useState(null);
+  const [types, setType] = useState(null);
+  const [file, setFile] = useState();
+  const { mutateAsync: upload } = useStorageUpload();
   const [form, setForm] = useState({
     name: '',
     title: '',
     description: '',
     category: '',
     openFunding: '',
-    target: '', 
+    target: '',
     deadline: '',
-    image: ''
+    image: '',
+    approvalRate: ''
   });
 
-  const curDate= new Date().getTime();
-  const parseDeadline =  new Date(form.deadline).getTime();
+  const curDate = new Date().getTime();
+  const parseDeadline = new Date(form.deadline).getTime();
 
 
   const handleFormFieldChange = (fieldName, e) => {
-    setForm({ ...form, [fieldName]: e.target.value }) 
+    setForm({ ...form, [fieldName]: e.target.value })
   }
-  const handleSelectfieldCHange =(e) =>{
+  const handleSelectfieldCHange = (e) => {
     setValue(e.target.value);
   }
-  const handleSelectTypeCHange =(e) =>{
-    setType(e.target.value==='true');
+  const handleSelectTypeCHange = (e) => {
+    setType(e.target.value === 'true');
   }
 
- useEffect(()=>{
-  setValue('Education');
- },[])
- 
 
- useEffect(()=>{
-  setType(false);
- },[])
- console.log(types)
+  console.log(form.image)
+  useEffect(() => {
+    setValue('Education');
+  }, [])
 
- const notify = (message) => {
-  toast.error(message, {
-    position: "top-center",
-    autoClose: 1500,
-    hideProgressBar: false,
-    closeOnClick: true,
-    pauseOnHover: true,
-    draggable: true,
-    progress: undefined,
-    theme: "light",
-  });
+  useEffect(() => {
+    setType(false);
+  }, [])
+  console.log(form)
 
-}
+  const notify = (message) => {
+    toast.error(message, {
+      position: "top-center",
+      autoClose: 1500,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "light",
+    });
+
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-   if (parseDeadline>curDate){
+    if (parseDeadline > curDate) {
+      setIsLoading(true)
+      const uploadUrl = await upload({
+        data: [file],
+        options: { uploadWithGatewayUrl: true, uploadWithoutDirectory: true },
+      });
+
+      await createCampaign({ ...form, image: uploadUrl[0], category: values, openFunding: types, target: ethers.utils.parseUnits(form.target, 18) })
+      setIsLoading(false);
+      notify("Your campaign has been added for review")
+      navigate('/dashboard');
     
-    checkIfImage(form.image, async (exists) => {
-      if(exists) {
-       
-        setIsLoading(true)
-        await createCampaign({ ...form, category: values, openFunding: types, target: ethers.utils.parseUnits(form.target, 18)} )
-        setIsLoading(false);        
-        navigate('/dashboard');
-      } else {
-        alert('Provide valid image URL')
-        setForm({ ...form, image: '' });
-        
-      }
-    })}
-    else{
+    }
+    else {
 
       notify('Deadline should be in the future')
       setForm({ ...form, deadline: '' });
-     
+
     }
-    console.log(loadError)     
+   
   }
-    
-  
+
+
 
   return (
     <div className="bg-[#1c1c24] flex justify-center items-center flex-col rounded-[10px] sm:p-10 p-4">
-      {isLoading && <Loader />}   
+      {isLoading && <Loader />}
 
       <div className="flex justify-center items-center p-[16px] sm:min-w-[380px] bg-[#3a3a43] rounded-[10px]">
         <h1 className="font-epilogue font-bold sm:text-[25px] text-[18px] leading-[38px] text-white">Start a Campaign</h1>
@@ -106,21 +106,21 @@ const CreateCampaign = () => {
 
       <form onSubmit={handleSubmit} className="w-full mt-[65px] flex flex-col gap-[30px]">
         <div className="flex flex-wrap gap-[40px]">
-          <FormField 
+          <FormField
             labelName="Your Name *"
             placeholder="John Doe"
             inputType="text"
             value={form.name}
             handleChange={(e) => handleFormFieldChange('name', e)}
           />
-          <FormField 
+          <FormField
             labelName="Campaign Title *"
             placeholder="Write a title"
             inputType="text"
             value={form.title}
             handleChange={(e) => handleFormFieldChange('title', e)}
           />
-           <FormField 
+          <FormField
             labelName="Category *"
             isSelectArea
             value={values}
@@ -128,38 +128,38 @@ const CreateCampaign = () => {
           />
         </div>
 
-        <FormField 
-            labelName="Story *"
-            placeholder="Write your story"
-            isTextArea
-            value={form.description}
-            handleChange={(e) => handleFormFieldChange('description', e)}
-          />
-          
+        <FormField
+          labelName="Story *"
+          placeholder="Write your story"
+          isTextArea
+          value={form.description}
+          handleChange={(e) => handleFormFieldChange('description', e)}
+        />
+
 
         <div className="w-full flex justify-start items-center p-4 bg-[#8c6dfd] h-[120px] rounded-[10px]">
-          <img src={money} alt="money" className="w-[40px] h-[40px] object-contain"/>
+          <img src={money} alt="money" className="w-[40px] h-[40px] object-contain" />
           <h4 className="font-epilogue font-bold text-[25px] text-white ml-[20px]">You will get 100% of the raised amount</h4>
         </div>
 
         <div className="flex flex-wrap gap-[40px]">
 
-          <FormField 
+          <FormField
             labelName="Type *"
             isSelectType
             value={types}
             handleChange={(e) => handleSelectTypeCHange(e)}
-           />
+          />
 
-          <FormField 
+          <FormField
             labelName="Goal *"
             placeholder="ETH 0.50"
             inputType="number"
             value={form.target}
             handleChange={(e) => handleFormFieldChange('target', e)}
           />
-           
-          <FormField 
+
+          <FormField
             labelName="End Date *"
             placeholder="End Date"
             inputType="date"
@@ -167,32 +167,39 @@ const CreateCampaign = () => {
             handleChange={(e) => handleFormFieldChange('deadline', e)}
           />
         </div>
-
-        <FormField 
-            labelName="Campaign image *"
-            placeholder="Place image URL of your campaign"
-            inputType="url"
-            value={form.image}
-            handleChange={(e) => handleFormFieldChange('image', e)}
+        <FormField
+            labelName="Approval Rate *"
+            placeholder="Approval Rate (10-100)"
+            inputType="number"
+            value={form.approvalRate}
+            handleChange={(e) => handleFormFieldChange('approvalRate', e)}
           />
 
-          <div className="flex justify-center items-center mt-[40px]">
-            <CustomButton 
-              btnType="submit"
-              title="Submit new campaign"
-              styles="bg-[#1dc071]"
-            />
-          </div>
+        <FormField
+          labelName="Campaign image *"
+          placeholder="Place image URL of your campaign"
+          inputType="file"
+          accept="image/*"
+          handleChange={(e) => setFile(e.target.files[0])}
+        />
+
+        <div className="flex justify-center items-center mt-[40px]">
+          <CustomButton
+            btnType="submit"
+            title="Submit new campaign"
+            styles="bg-[#1dc071]"
+          />
+        </div>
       </form>
       <ToastContainer
-          position="top-center"
-          autoClose={2000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}        
-          theme="light"
-        />
+        position="top-center"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        theme="light"
+      />
     </div>
   )
 }

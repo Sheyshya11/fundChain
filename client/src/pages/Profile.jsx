@@ -21,11 +21,14 @@ const Profile = () => {
   }, [address, contract]);
 
   return (
+    
     <DisplayCampaigns 
       title="Campaigns Profile"
       isLoading={isLoading}
       campaigns={campaigns}
     />
+ 
+  
   )
 }
 

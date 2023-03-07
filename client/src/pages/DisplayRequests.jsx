@@ -111,6 +111,7 @@ const DisplayRequests = () => {
         rId={request.rId}
         amountCollected={campaigns.amountCollected}
         amountReleased={campaigns.amountReleased}
+        approvalRate={campaigns.approvalRate}
         {...request}
         handleClick={() => handleNavigate(request)}
       />)}

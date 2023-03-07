@@ -7,3 +7,4 @@ export {default as DisplayRequests} from './DisplayRequests'
 export { default as CampaignDetails  } from './CampaignDetails';
 export {default as Landing} from './Landing';
 export {default as NotFoundPage} from './NotFoundPage'
+export {default as AdminPanel} from './AdminPanel'

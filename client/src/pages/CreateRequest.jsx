@@ -7,6 +7,7 @@ import { CustomButton, FormField, Loader } from '../components';
 import { checkIfImage } from '../utils';
 import {toast, ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useStorageUpload } from "@thirdweb-dev/react";
 
 const CreateRequest = () => {
   const navigate = useNavigate();
@@ -14,7 +15,9 @@ const CreateRequest = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { address, createRequest } = useStateContext();
   const[isValid,setIsValid] = useState(false)
-
+  const [ValidOpenFundAmount,setValidOpenFundAmount] = useState();
+  const [file, setFile] = useState();
+  const { mutateAsync: upload } = useStorageUpload();
   const [form, setForm] = useState({
     campaignId: '',
     title: '',
@@ -24,6 +27,10 @@ const CreateRequest = () => {
     image: ''
   });
   const hexadecimalRegex = /^0x[0-9A-Fa-f]+$/;
+  const difference = (new Date(state.deadline).getTime()) - Date.now();
+  /* const difference = 0; */
+  const minute = difference/(60 * 1000 )
+  const remainingMinute = minute.toFixed(0);
 
   const notify = (message) => {
     toast.error(message, {
@@ -46,21 +53,36 @@ const CreateRequest = () => {
     setIsValid(hexadecimalRegex.test(form.recipient));
   }, [form.recipient]);
 
+  useEffect(()=>{
+    if((state.openFunding) && (remainingMinute <= 0)){
+      setValidOpenFundAmount(state.amountCollected- (state.target - state.validFund));
+  }
+  else
+  {
+    setValidOpenFundAmount(state.validFund)
+  }
+  },[])
+
   const handleSubmit = async (e) => {
     e.preventDefault();
    
-    checkIfImage(form.image, async (exists) => {
-      if (exists) {
+    
+      
         if (address === state.owner) {
           if (state.owner != form.recipient) {
             if(isValid){       
               if(form.goal <= state.validFund){
                 setIsLoading(true)
-                await createRequest({ ...form, campaignId: state.pId, goal: ethers.utils.parseUnits(form.goal, 18) })
+                const uploadUrl = await upload({
+                  data: [file],
+                  options: { uploadWithGatewayUrl: true, uploadWithoutDirectory: true },
+                });
+
+                await createRequest({ ...form, image: uploadUrl[0], campaignId: state.pId, goal: ethers.utils.parseUnits(form.goal, 18) })
                 setIsLoading(false);
                 navigate(`/view-request/${state.pId}`, { state: state });}
               else{
-                notify('Greater than the collected amount.')
+                notify('Greater than the valid amount.')
               }}
                 else{
                   notify('Invalid address')
@@ -73,12 +95,8 @@ const CreateRequest = () => {
         else {
           notify('Only owner can create Request');
         }
-      } else {
-        notify('Provide valid image URL')
-        setForm({ ...form, image: '' });
-
-      }
-    })
+      
+    
   }
 
   return (
@@ -121,13 +139,13 @@ const CreateRequest = () => {
           handleChange={(e) => handleFormFieldChange('description', e)}
         />
 
-        <FormField
-          labelName="Recipient Citizenship Image *"
-          placeholder="Place image URL of your campaign"
-          inputType="url"
-          value={form.image}
-          handleChange={(e) => handleFormFieldChange('image', e)}
-        />
+         <FormField
+          labelName="Request image *"
+          placeholder="Place image URL of your Request"
+          inputType="file"
+          accept="image/*"
+          handleChange={(e) => setFile(e.target.files[0])}
+          />
 
         <div className="flex justify-center items-center mt-[20px]">
           <CustomButton

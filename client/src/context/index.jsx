@@ -9,7 +9,7 @@ import { EditionMetadataWithOwnerOutputSchema } from '@thirdweb-dev/sdk';
 const StateContext = createContext();
 
 export const StateContextProvider = ({ children }) => {
-  const { contract } = useContract('0x663990cfc3852400bD93c54793755e44463700dd');
+  const { contract } = useContract('0xAE12e07dD0150677aaAc8454Be3C9285b4afa662');
   const { mutateAsync: createCampaign } = useContractWrite(contract, 'createCampaign');
   const { mutateAsync: createRequest } = useContractWrite(contract, 'createRequest');
 
@@ -33,7 +33,8 @@ export const StateContextProvider = ({ children }) => {
         form.openFunding,
         form.target,
         new Date(form.deadline).getTime(), // deadline,
-        form.image
+        form.image,
+        form.approvalRate
       ])
 
       console.log("contract call success", data)
@@ -57,6 +58,8 @@ export const StateContextProvider = ({ children }) => {
       amountReleased: ethers.utils.formatEther(campaign.amountReleased.toString()),
       validFund: ethers.utils.formatEther(campaign.validFund.toString()),
       image: campaign.image,
+      approvalRate: campaign.approvalRate,
+      status: campaign.status,
       pId: i
     }));
 
@@ -190,15 +193,11 @@ export const StateContextProvider = ({ children }) => {
 
   }
 
-  /* const refund = async(pId)=>{
-    try{
-       const data = await contract.call('refund',pId);
-      console.log('Successfully refunded',data)}
-       catch(error){
-        console.log('Failed to refund',error)
-       }
-
-  } */
+  const refund = async(pId, adress, amount)=>{
+    
+       const data = await contract.call('refund',pId, adress, { value: ethers.utils.parseEther(amount)});
+      return data;
+  }
 
   const hasVoted = async(pId)=>{
     try{
@@ -226,6 +225,45 @@ export const StateContextProvider = ({ children }) => {
     return parsedVoted;
 
   }
+  const getRefundedAddress=async(pId)=>{
+    const refunded = await contract.call('getRefundedAddress',pId);
+    const numberOfRefunds = refunded.length;
+
+    const parsedRefunded = [];
+
+    for(let i = 0; i < numberOfRefunds; i++) {
+      parsedRefunded.push({
+        RefundAddress: refunded[i]
+      })
+    }
+     
+    return parsedRefunded;
+  }
+
+  const approveCampaigns =async(pId)=>{
+    try{
+    const data = await contract.call('approveCampaigns',pId);
+    console.log('Successfully approve campaign',data);}
+    catch(error){
+      console.log('Failed to approve campaign',error);
+    }
+
+  }
+
+  const cancelCampaigns=async(pId)=>{
+    try{
+      const data = await contract.call('cancelCampaigns',pId);
+      console.log('Successfully canceled campaign',data);}
+      catch(error){
+        console.log('Failed to cancel campaign',error);
+      }
+
+  }
+
+  const getOpenValidFund = async(pId)=>{
+   const data= await contract.call('getOpenValidFund',pId);
+   return data;
+  }
  
   return (
     <StateContext.Provider
@@ -248,9 +286,13 @@ export const StateContextProvider = ({ children }) => {
         finalizeRequest,
         edit,
         getbalance,
-       /*  refund, */
+        refund,
         hasVoted,
-        getVoted
+        getVoted,
+        getRefundedAddress,
+        approveCampaigns,
+        cancelCampaigns,
+        getOpenValidFund
       
     }}
     >

@@ -4,6 +4,7 @@ import { useStateContext} from '../context'
 import { useLocation, useNavigate } from 'react-router-dom';
 import {CustomButton} from '../components';
 
+
 const Home = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [campaigns, setCampaigns] = useState([]);
@@ -23,13 +24,13 @@ const Home = () => {
     setIsLoading(true);
     const data = await getCampaigns();
     const filterarray = data.filter((state) => {
-      return state.title !== '';
+      return state.title !== '' && state.status;
     });
     const filterOpen= data.filter((state)=>{
-      return state.openFunding && state.title !== '';
+      return state.openFunding && state.title !== '' && state.status;
     })
     const filterClose= data.filter((state)=>{
-      return !state.openFunding && state.title !== '';
+      return !state.openFunding && state.title !== '' && state.status;
     })
     setCampaigns(filterarray);
     setTempCampaigns(filterarray)
@@ -55,6 +56,7 @@ setCampaigns(closeCampaigns)
 const handleAll=()=>{
 setCampaigns(tempCampaigns)
 }
+
  
 
   return (

@@ -12,7 +12,8 @@ import 'react-toastify/dist/ReactToastify.css';
 const CampaignDetails = () => {
 
   const navigate = useNavigate();
-  const { donate, getDonations, contract, address, deleteCampaign, connect, getCampaigns, edit } = useStateContext();
+  const { donate, getDonations, contract, address, deleteCampaign, connect,refund, getOpenValidFund,
+    getRefundedAddress, getCampaigns,getVoters, edit } = useStateContext();
 
   const { id } = useParams();
   const [campaigns, setCampaigns] = useState({});
@@ -21,12 +22,16 @@ const CampaignDetails = () => {
   const [amount, setAmount] = useState('');
   const [name, setName] = useState('');
   const [donations, setDonations] = useState([]);
+  const [voters, setVoters] = useState([])
+  const [refundAdd, setRefundAdd] = useState([])
 
  /*  const [voted, setVoted] = useState([]) */
   const [uniqueDonator, setUniqueDonator] = useState([]);
   const [edited, setEdited] = useState(false)
   const [showMore, setShowMore] = useState(false);
+  const [ValidOpenFundAmount,setValidOpenFundAmount] = useState();
   const remainingDays = daysLeft(campaigns.deadline);
+  //to store edit
   const [form, setForm] = useState({
     description: ''
   });
@@ -42,11 +47,6 @@ const CampaignDetails = () => {
   const remainingHour = hour.toFixed(0)
   const remainingMinute = minute.toFixed(0);
   
-
- 
-
-
-
 
   const handleFormFieldChange = (fieldName, e) => {
     setForm({ ...form, [fieldName]: e.target.value })
@@ -74,6 +74,20 @@ const CampaignDetails = () => {
   useEffect(() => {
     setIsWaiting(true)
   }, []);
+
+  const getValidOpenFund=async()=>{
+    const validFund = await getOpenValidFund(id);
+    setValidOpenFundAmount(validFund);
+  }
+
+  useEffect(()=>{
+    if((campaigns.openFunding) && (remainingMinute <= 0)){
+      getValidOpenFund(); 
+  }
+  },[])
+
+
+ 
  
 
   const fetchDonators = async () => {
@@ -83,6 +97,7 @@ const CampaignDetails = () => {
       return [...new Set(filterdata)];
     }
     setUniqueDonator(uniquedata)
+    data.sort((a, b) => b.donation - a.donation)
     setDonations(data);
   }
 
@@ -94,10 +109,30 @@ const CampaignDetails = () => {
 
   }, [contract, address, name])
 
+  /* const fetchVoters = async () => {
+    const data = await getVoters(campaigns.pId);
+    const newdata = data.map(voter => voter.voter)
+    setVoters(newdata)
 
+  }
+  useEffect(() => {
+    if (contract) {
+      fetchVoters();
+    }
+  }, [contract, address]) */
 
-/* 
-*/
+  /* const fetchrefunds=async()=>{
+    const data= await getRefundedAddress(campaigns.pId);
+    const newdata = data.map(voter => voter.RefundAddress)
+   
+    setRefundAdd(newdata)
+  }
+  useEffect(() => {
+    if (contract) {
+      fetchrefunds();
+    }
+  }, [contract, address])
+ */
 
   const notify = (message) => {
     toast.error(message, {
@@ -125,17 +160,22 @@ const CampaignDetails = () => {
     setIsWaiting(false);
     setEdited(false)
   }
+ 
 
   const handleDonate = async (e) => {
     e.preventDefault();
-   if (address) {
+   if (address && campaigns.status) {
       if (address !== campaigns.owner) {
-        if (amount > 0.0001 &&  name.length < 16) {
+        if (amount > 0.000001 &&  name.length < 16) {
           if (amount <= campaigns.target - campaigns.amountCollected || campaigns.openFunding) {
+            if(remainingMinute>0){
             setIsLoading(true);
             await donate(campaigns.pId, amount, name);
             navigate(`/view-request/${campaigns.pId}`)
-            setIsLoading(false);
+            setIsLoading(false);}
+            else{
+              notify('Deadline already expired')
+            }
           }
           else {
             notify('Donation exceeds campaign target');
@@ -180,24 +220,30 @@ const CampaignDetails = () => {
     }
 
   }
+  console.log(donations)
 
-  const handleRefund = async(pId)=>{
+  const handleRefund = async()=>{
+    let amount = 0;
+    
     if(campaigns.amountReleased == 0 ){
-    for (let i= 0;i<donations.length;i++){
-      if(uniqueDonator[i] == address){
-       if(!voted[i]){
+   
+      if(uniqueDonator.includes(address)){
+       //add if the donator has not voted then can refund
+      
+       for (let i=0;i<donations.length;i++){
+        if(address == donations[i].donator){
+          amount+=donations[i].donation;
+        }
+      }
         setIsLoading(true);
-        await refund(pId);
+        await refund(campaigns.pId,address,amount);
         setIsLoading(false);
-       }
-       else{
-        notify('You have already voted , cant refund')
-       }
+      
       }
       else{
         notify('Not a donator')
       }
-    }}
+    }
     else{
     notify('Amount has already released, cant refund')
     }
@@ -208,7 +254,7 @@ const CampaignDetails = () => {
 
       {isLoading && <Loader />}
       {isWaiting && <Loading />}
-      {edited && <>
+      {edited  && <>
         <div
           className={`fixed top-0 left-0 w-screen h-screen flex
     items-center justify-center bg-black bg-opacity-50
@@ -284,39 +330,32 @@ const CampaignDetails = () => {
           <p className='text-green-400 font-bold'>{campaigns.validFund}</p>
           </div> : ''  }
           {address == campaigns.owner && campaigns.openFunding  ? <div className='flex flex-row gap-3 uppercase text-white font-epilogue text-[#808191]'>Valid fund :   
-          {difference <= 0 ? <p className='text-green-400 font-bold'>{campaigns.amountCollected}</p> : 
-          <p className='text-green-400 font-bold'>Unknown</p>}
+          {remainingMinute <= 0 ? <p className='text-green-400 font-bold'>{ValidOpenFundAmount}</p> : 
+          <p className='text-green-400 font-bold'>{campaigns.validFund}</p>}
           </div> : ''  }
           <div className='flex flex-row gap-3 uppercase text-white font-epilogue text-[#808191]'>Campaign Type :
             <p className='text-green-400 font-bold'>{campaigns.openFunding ? 'Open' : 'Closed'}</p>
           </div>
           
+          
         </div>
+       
 
       </div>
 
       <div className='flex flex-row justify-start content-center my-[20px]'>
 
-        {address == campaigns.owner && !campaigns.openFunding ?         
+        {address == campaigns.owner && campaigns.status ?         
           <CustomButton
             btnType="button"
             title={'Create Request'}
-            styles={'bg-[#7024ec] w-[160px] text-[14px]'}
+            styles={ 'bg-[#7024ec] w-[160px] text-[14px]' }
             handleClick={() => {
               if (address) handleCreateRequest(campaigns.pId)
               else connect()
             }}
           /> : ''}
-          {address == campaigns.owner && campaigns.openFunding ?         
-          <CustomButton
-            btnType="button"
-            title={'Create Request'}
-            styles={difference <= 0 ? 'bg-[#7024ec] w-[160px] text-[14px]' : 'bg-gray-300 text-black w-[160px] text-[14px] '}
-            handleClick={() => {
-             if( difference <= 0) handleCreateRequest(campaigns.pId)
-             
-            }}
-          /> : ''}
+          {campaigns.status ?
         <CustomButton
           btnType="button"
           title={'View Request'}
@@ -325,6 +364,7 @@ const CampaignDetails = () => {
             handleNavigate(campaigns.pId);
           }}
         />
+      : ''}
 
       </div>
       <div className="mt-[60px] flex lg:flex-row flex-col gap-5">
@@ -346,7 +386,7 @@ const CampaignDetails = () => {
           <div>
             <div className='flex flex-row justify-between'>
               <h4 className="font-epilogue font-semibold text-[18px] text-[#0e7490] uppercase">Story</h4>
-              {address === campaigns.owner ? <CustomButton
+              {address === campaigns.owner && campaigns.status ? <CustomButton
                 title="Edit"
                 btnType="button"
                 styles="w-1/6 bg-[#1e293b]"
@@ -391,6 +431,7 @@ const CampaignDetails = () => {
 
 
             <div className="mt-[20px] flex flex-col gap-4">
+
               {donations.length > 0 ? donations.map((item, index) => (
                 <div key={`${item.donator}-${index}`} className="flex justify-between items-center gap-4">
                   <p className="font-epilogue font-bold text-[16px] w-[170px] text-[#b2b3bd] leading-[26px] break-ll">{index + 1}. 
@@ -423,7 +464,7 @@ const CampaignDetails = () => {
                   <input
                     type="number"
                     required
-                    placeholder="Enter Eth greater than 0.0001"
+                    placeholder="Enter Eth greater than 0.000001"
                     step="0.01"
                     className="w-full py-[10px] sm:px-[20px] px-[15px] outline-none border-[1px] border-[#3a3a43] bg-transparent font-epilogue text-white text-[18px] leading-[30px] placeholder:text-[#4b5264] rounded-[10px]"
                     value={amount}
@@ -459,9 +500,8 @@ const CampaignDetails = () => {
                   btnType="submit"
                   title="Fund Campaign"
                   styles="w-full bg-[#1dc071]"
-                  
-
                 />}
+                 
                 <ToastContainer
           position="top-center"
           autoClose={2000}
@@ -483,15 +523,15 @@ const CampaignDetails = () => {
             </div>
     
           </div>
-         {/*  {uniqueDonator.includes(address) ? 
+          {/* {uniqueDonator.includes(address) ? 
          <div className="flex-1">
          <div className="mt-[20px] flex flex-col p-4 bg-[#1c1c24] rounded-[10px]">
            <CustomButton
            title="Refund"
            btnType="button"
-           styles="w-full mt-[30px] bg-red-400"
+           styles="w-full  bg-red-400"
            handleClick={()=>{
-             handleRefund(campaigns.pId);
+             handleRefund();
            }}
            />
            </div>

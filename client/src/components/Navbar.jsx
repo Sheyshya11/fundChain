@@ -8,6 +8,7 @@ import { navlinks } from '../constants';
 import { truncate } from '../utils';
 
 
+
 const Navbar = () => {
   const navigate = useNavigate();
   const [isActive, setIsActive] = useState('dashboard');
@@ -57,7 +58,8 @@ useEffect(()=>{
           <p className="flex">{Balance} ETH</p>
         </div> : ''}
 
-        <CustomButton
+          {address != '0xA2ADF0362490B7de632907AbA251c98DDC9F4222' ?
+          <CustomButton
           btnType="button"
           title={address ? 'Create a campaign' : 'Connect'}
           styles={address ? 'bg-[#1dc071]' : 'bg-[#7024ec]'}
@@ -67,7 +69,30 @@ useEffect(()=>{
               connect();
             }
           }}
-        /> 
+        /> :
+        <CustomButton
+          btnType="button"
+          title={address ? 'Admin Dashboard' : 'Connect'}
+          styles={address ? 'bg-[#1dc071]' : 'bg-[#7024ec]'}
+          handleClick={() => {
+            if (address) navigate('admin-panel')
+            else{
+              connect();
+            }
+          }}
+        />
+          }
+        {/* <CustomButton
+          btnType="button"
+          title={address ? 'Create a campaign' : 'Connect'}
+          styles={address ? 'bg-[#1dc071]' : 'bg-[#7024ec]'}
+          handleClick={() => {
+            if (address) navigate('create-campaign')
+            else{
+              connect();
+            }
+          }}
+        />  */}
      
         
 

@@ -2,7 +2,7 @@ import React from 'react'
 import { Categories } from '../constants/categories'
 import { types } from '../constants/types'
 
-const FormField = ({ labelName, placeholder, inputType, isTextArea, isSelectArea, isSelectType, value, handleChange }) => {
+const FormField = ({ labelName, accept, placeholder, inputType, isTextArea, isSelectArea, isSelectType, value, handleChange,styles }) => {
   
   
   return (
@@ -63,9 +63,10 @@ const FormField = ({ labelName, placeholder, inputType, isTextArea, isSelectArea
           value={value}
           onChange={handleChange}
           type={inputType}
+          accept={accept}
           step="0.1"
           placeholder={placeholder}
-          className="py-[15px] sm:px-[25px] px-[15px] outline-none border-[1px] border-[#3a3a43] bg-transparent font-epilogue text-white text-[14px] placeholder:text-[#4b5264] rounded-[10px] sm:min-w-[300px]"
+          className={`py-[15px] sm:px-[25px] px-[15px] outline-none border-[1px] border-[#3a3a43] bg-transparent font-epilogue text-white text-[14px] placeholder:text-[#4b5264] rounded-[10px] sm:min-w-[300px] ${styles}`}
         />
        
       }

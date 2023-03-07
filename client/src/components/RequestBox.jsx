@@ -24,22 +24,24 @@ const Icon = ({ styles, name, imgUrl, isActive, disabled, handleClick }) => (
   </div>
 )
 
-const RequestBox = ({ rId, campaignId, creator, title, description, goal, recipient, image, amountCollected, amountReleased, approved, complete, voteCount, handleClick }) => {
+const RequestBox = ({ rId, campaignId, creator, title, description, goal, recipient, image, amountCollected,
+   amountReleased, approved, complete, voteCount, approvalRate, handleClick }) => {
   const { address, connect, getDonations, contract, approveRequest, finalizeRequest, getVoters } = useStateContext();
   const { state } = useLocation();
   const { id } = useParams();
   const navigate = useNavigate();
   const [donations, setDonations] = useState([]);
-  const [isWaiting, setIsWaiting] = useState(false)
+  const [isWaiting, setIsWaiting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const intId = parseInt(id)
   const [voters, setVoters] = useState([])
 /*   const [voted, setVoted] = useState([]) */
   const [uniqueDonator, setUniqueDonator] = useState([]);
 
   let [count, setCount] = useState(voteCount)
-  const [isLoading, setIsLoading] = useState(false);
 
-  const DonationNumber = (Math.floor(uniqueDonator.length / 2 + 1))
+
+  const DonationNumber = (Math.ceil(uniqueDonator.length* (approvalRate/100)))
    amountCollected = amountCollected - amountReleased;
 
   const fetchDonators = async () => {
@@ -64,7 +66,7 @@ console.log()
 
 
   const fetchVoters = async () => {
-    const data = await getVoters(rId);
+    const data = await getVoters(campaignId);
     const newdata = data.map(voter => voter.voter)
     setVoters(newdata)
 
@@ -122,12 +124,12 @@ console.log()
   };
 
 
-console.log(complete)
+console.log(voters)
   const handleFinalize = async (rId, goal) => {
     if (address) {
       if (creator == address) {
         if (!complete) {
-          if (DonationNumber == voteCount) {
+          if (voteCount > 0 && DonationNumber == voteCount) {
             if (amountCollected >= goal) {
 
               setIsLoading(true)

@@ -3,7 +3,7 @@ import { Route, Routes} from 'react-router-dom';
 
 
 import { Sidebar, Navbar } from './components';
-import { CampaignDetails, CreateCampaign, Home, Profile, Landing, CreateRequest, RequestDetails,NotFoundPage } from './pages';
+import { CampaignDetails, CreateCampaign, Home, Profile, Landing, CreateRequest, AdminPanel, RequestDetails,NotFoundPage } from './pages';
 import DisplayRequests from './pages/DisplayRequests';
 import { useStateContext } from './context';
 
@@ -25,6 +25,7 @@ const App = () => {
           <Route  path="/create-request/:id" element={<CreateRequest />}/>
           <Route  path="/view-request/:id" element={ <DisplayRequests />}/>
           <Route  path='/request-details/:id' element={<RequestDetails />}/>
+          <Route  path="/admin-panel" element={address == '0xA2ADF0362490B7de632907AbA251c98DDC9F4222' ? <AdminPanel /> : <NotFoundPage/>}/>
           <Route  path="/campaign-details/:name/:id" element={<CampaignDetails />} />
           <Route  path='*' element={<NotFoundPage/>} />
           <Route  path='/notFound' element={<NotFoundPage/>} />
