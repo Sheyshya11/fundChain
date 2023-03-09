@@ -15,11 +15,15 @@
     "@mui/material": "^5.11.6",
     "@thirdweb-dev/react": "^3",
     "@thirdweb-dev/sdk": "^3",
+    "crypto-js": "^4.1.1",
     "ethers": "^5.7.2",
+    "ipfs-http-client": "^60.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-pro-sidebar": "^0.7.1",
-    "react-router-dom": "^6.6.1"
+    "react-router-dom": "^6.6.1",
+    "react-share": "^4.4.1",
+    "react-toastify": "^9.1.1"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^2",
