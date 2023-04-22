@@ -1,6 +1,6 @@
-import React from 'react';
+import React,{useEffect,useState} from 'react';
 import { Route, Routes} from 'react-router-dom';
-
+import axios from 'axios'
 
 import { Sidebar, Navbar } from './components';
 import { CampaignDetails, CreateCampaign, Home, Profile, Landing, CreateRequest, AdminPanel, RequestDetails,NotFoundPage } from './pages';
@@ -9,8 +9,25 @@ import { useStateContext } from './context';
 
 const App = () => {
  const {address}=useStateContext();
+ const [data, setData] = useState(null);
+
+
+/*  const fetchData=async()=>{
+ await axios.get('http://localhost:8080/api').then(
+  (res)=>{setData(res.data)}
+ )
+
+ }
+ useEffect(()=>{
+  fetchData();
+ },[])
+ */
+
   return (
     <div className="relative  sm:-8 p-4 bg-[#13131a] min-h-screen flex flex-row">
+  
+       
+      
       <div className="sm:flex hidden mr-10 relative">
         <Sidebar />
       </div>

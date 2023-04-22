@@ -13,6 +13,7 @@ import Loading from './Loading';
 
 
 
+
 const Icon = ({ styles, name, imgUrl, isActive, disabled, handleClick }) => (
 
   <div className={`w-[48px] h-[48px] rounded-[10px] ${isActive && isActive === name && ' bg-[#2c2f32]'} flex justify-center items-center ${!disabled && 'cursor-pointer'} ${styles}`} onClick={handleClick}>
@@ -25,7 +26,7 @@ const Icon = ({ styles, name, imgUrl, isActive, disabled, handleClick }) => (
 )
 
 const RequestBox = ({ rId, campaignId, creator, title, description, goal, recipient, image, amountCollected,
-   amountReleased, approved, complete, voteCount, approvalRate, handleClick }) => {
+   amountReleased, complete, voteCount, approvalRate, handleClick }) => {
   const { address, connect, getDonations, contract, approveRequest, finalizeRequest, getVoters } = useStateContext();
   const { state } = useLocation();
   const { id } = useParams();
@@ -43,7 +44,7 @@ const RequestBox = ({ rId, campaignId, creator, title, description, goal, recipi
 
   const DonationNumber = (Math.ceil(uniqueDonator.length* (approvalRate/100)))
    amountCollected = amountCollected - amountReleased;
-
+   console.log(DonationNumber)
   const fetchDonators = async () => {
     setIsWaiting(true)
     const data = await getDonations(intId);
@@ -93,17 +94,18 @@ console.log()
 
   }
 
-
+console.log(DonationNumber)
+console.log(voteCount)
   const handleVote = async (rId) => {
 
     if (uniqueDonator.includes(address)) {
-      if (voteCount <= DonationNumber) {
+      if (voteCount != DonationNumber) {
         if (!voters.includes(address)) {
           setIsLoading(true)
           await approveRequest(rId);
        /*    await hasVoted(campaignId); */
           setCount(count + 1);
-          navigate(`/request-details/${rId}`)
+          navigate(`/request-details/${rId}`,{ state: state })
           setIsLoading(false)
 
 

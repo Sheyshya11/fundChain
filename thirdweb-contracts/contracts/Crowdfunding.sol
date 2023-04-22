@@ -91,6 +91,8 @@ contract CrowdFunding {
         uint256 voteCount;
         address[] voters;
         bool complete;
+        string image_license;
+        string file;
     }
 
     mapping(uint256 => Request) public requests;
@@ -104,7 +106,9 @@ contract CrowdFunding {
         string memory _description,
         uint256 _goal,
         address _recipient,
-        string memory _image
+        string memory _image,
+        string memory _image_license,
+        string memory _file
     ) public returns (uint256) {
         Request storage request = requests[numberOfRequests];
        
@@ -113,7 +117,8 @@ contract CrowdFunding {
             _goal <= campaigns[request.campaignId].amountCollected,
             "The requested amount exceeds the funds available in the campaign."
         ); */
-        require(_goal<=campaigns[_campaignId].validFund,"Amount is greater than fund collected");
+      
+          require(_goal<=campaigns[_campaignId].validFund,"Amount is greater than fund collected");
         
         request.creator = _creator;
         request.campaignId = _campaignId;
@@ -122,9 +127,17 @@ contract CrowdFunding {
         request.goal = _goal;
         request.recipient = _recipient;
         request.image = _image;
+        request.image_license=_image_license;
+        request.file=_file;
         request.voteCount = 0;   
-        campaigns[_campaignId].validFund -= _goal;
+       campaigns[_campaignId].validFund -= _goal;
         request.complete= false;
+
+         
+         
+         
+
+
         numberOfRequests++;
 
         return numberOfRequests - 1;
@@ -176,23 +189,25 @@ contract CrowdFunding {
 
         if (sent) {
             campaign.amountCollected = campaign.amountCollected + amount;
+            if(campaign.openFunding ){
+           
+            if(campaign.amountCollected>campaign.target){
+                 uint256 validOpenfund=0;
+            for(uint256 i=0;i<numberOfRequests;i++){
+            if(requests[i].campaignId == _id){
+             validOpenfund =validOpenfund+requests[i].goal; 
+            }
+            }
+               
+                campaign.validFund=campaign.amountCollected-validOpenfund;
+            }
+           
+           
+         }
+        
         }
     }
-    function getOpenValidFund(uint256 _campaignId)public returns(uint256){
-         uint256 validOpenfund=0;
-         require(campaigns[_campaignId].openFunding &&  (block.timestamp > campaigns[_campaignId].deadline),
-         "Deadline not exceeded yet or not open Fund type of campaign.");
-         
-            for(uint256 i=0;i<numberOfRequests;i++){
-            if(requests[i].campaignId == _campaignId){
-             validOpenfund +=requests[i].goal; 
-            }
-            }
-
-            campaigns[_campaignId].validFund=campaigns[_campaignId].amountCollected-validOpenfund;
-            return campaigns[_campaignId].validFund;
-    }
-
+    
     function getDonators(uint256 _id)
         public
         view
@@ -299,10 +314,7 @@ contract CrowdFunding {
             "Request is already approved"
 
         );
-        require(request.voteCount !=    //changed from donators to uniquedonator
-            campaigns[request.campaignId].uniqueDonators.length*(campaigns[request.campaignId].approvalRate / 100) + 1,
-            "Vote count already reached");
-       
+      
         request.voters.push(msg.sender);
         request.voteCount = request.voteCount + 1;
       
@@ -322,7 +334,7 @@ contract CrowdFunding {
         return campaigns[_id].voted;
     }
 
-    function getVoter(uint256 _id) public view returns (address[][] memory){
+    /* function getVoter(uint256 _id) public view returns (address[][] memory){
     Request memory request = requests[_id];
     address[][] memory allVoters = new address[][](campaigns[request.campaignId].uniqueDonators.length);
     
@@ -335,9 +347,15 @@ contract CrowdFunding {
 
     return allVoters;
 }
+ */
 
-
-
+     function getVoter(uint256 _id)
+        public
+        view
+        returns (address[] memory)
+    {
+        return (requests[_id].voters);
+    }
    
 
     function finalizeRequest(uint256 _id) public payable {

@@ -2,7 +2,7 @@ import React from 'react'
 import { Categories } from '../constants/categories'
 import { types } from '../constants/types'
 
-const FormField = ({ labelName, accept, placeholder, inputType, isTextArea, isSelectArea, isSelectType, value, handleChange,styles }) => {
+const FormField = ({ labelName,name, accept, placeholder, inputType, isTextArea, isSelectArea, isSelectType, value, handleChange,styles }) => {
   
   
   return (
@@ -60,6 +60,7 @@ const FormField = ({ labelName, accept, placeholder, inputType, isTextArea, isSe
               :
         <input 
           required
+          name={name}
           value={value}
           onChange={handleChange}
           type={inputType}

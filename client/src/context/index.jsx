@@ -9,7 +9,8 @@ import { EditionMetadataWithOwnerOutputSchema } from '@thirdweb-dev/sdk';
 const StateContext = createContext();
 
 export const StateContextProvider = ({ children }) => {
-  const { contract } = useContract('0xAE12e07dD0150677aaAc8454Be3C9285b4afa662');
+  const { contract } = useContract('0xcf93d099011236108392c4E3A7946ce366E58c16');//0xAE12e07dD0150677aaAc8454Be3C9285b4afa662
+ 
   const { mutateAsync: createCampaign } = useContractWrite(contract, 'createCampaign');
   const { mutateAsync: createRequest } = useContractWrite(contract, 'createRequest');
 
@@ -58,7 +59,7 @@ export const StateContextProvider = ({ children }) => {
       amountReleased: ethers.utils.formatEther(campaign.amountReleased.toString()),
       validFund: ethers.utils.formatEther(campaign.validFund.toString()),
       image: campaign.image,
-      approvalRate: campaign.approvalRate,
+      approvalRate: parseFloat(campaign.approvalRate.toString()),
       status: campaign.status,
       pId: i
     }));
@@ -83,7 +84,9 @@ export const StateContextProvider = ({ children }) => {
         form.description,
         form.goal,
         form.recipient,
-        form.image
+        form.image,
+        form.image_license,
+        form.file
       ])
       console.log("contract call success", data)
     } catch (error) {
@@ -103,9 +106,10 @@ export const StateContextProvider = ({ children }) => {
     image: request.image,
     campaignId: request.campaignId.toNumber(),
     voteCount: request.voteCount.toNumber(),
-    approved: request.approved,
     complete: request.complete,
     rId: i,
+    image_license: request.image_license,
+    file: request.file
   }));
 
   return parsedRequests;

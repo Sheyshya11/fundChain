@@ -29,7 +29,6 @@ const CampaignDetails = () => {
   const [uniqueDonator, setUniqueDonator] = useState([]);
   const [edited, setEdited] = useState(false)
   const [showMore, setShowMore] = useState(false);
-  const [ValidOpenFundAmount,setValidOpenFundAmount] = useState();
   const remainingDays = daysLeft(campaigns.deadline);
   //to store edit
   const [form, setForm] = useState({
@@ -75,16 +74,7 @@ const CampaignDetails = () => {
     setIsWaiting(true)
   }, []);
 
-  const getValidOpenFund=async()=>{
-    const validFund = await getOpenValidFund(id);
-    setValidOpenFundAmount(validFund);
-  }
-
-  useEffect(()=>{
-    if((campaigns.openFunding) && (remainingMinute <= 0)){
-      getValidOpenFund(); 
-  }
-  },[])
+ 
 
 
  
@@ -161,7 +151,7 @@ const CampaignDetails = () => {
     setEdited(false)
   }
  
-
+console.log(campaigns)
   const handleDonate = async (e) => {
     e.preventDefault();
    if (address && campaigns.status) {
@@ -326,13 +316,10 @@ const CampaignDetails = () => {
           <div className='flex flex-row gap-3 uppercase text-white font-epilogue text-[#808191]'>Amount released :
             <p className='text-green-400 font-bold'>{campaigns.amountReleased}</p>
           </div>
-          {address == campaigns.owner && !campaigns.openFunding? <div className='flex flex-row gap-3 uppercase text-white font-epilogue text-[#808191]'>Valid fund :   
+          {address == campaigns.owner ? <div className='flex flex-row gap-3 uppercase text-white font-epilogue text-[#808191]'>Valid fund :   
           <p className='text-green-400 font-bold'>{campaigns.validFund}</p>
           </div> : ''  }
-          {address == campaigns.owner && campaigns.openFunding  ? <div className='flex flex-row gap-3 uppercase text-white font-epilogue text-[#808191]'>Valid fund :   
-          {remainingMinute <= 0 ? <p className='text-green-400 font-bold'>{ValidOpenFundAmount}</p> : 
-          <p className='text-green-400 font-bold'>{campaigns.validFund}</p>}
-          </div> : ''  }
+     
           <div className='flex flex-row gap-3 uppercase text-white font-epilogue text-[#808191]'>Campaign Type :
             <p className='text-green-400 font-bold'>{campaigns.openFunding ? 'Open' : 'Closed'}</p>
           </div>
@@ -439,8 +426,8 @@ const CampaignDetails = () => {
               
                   </p>
                   <p className="font-epilogue font-normal text-[16px]  text-[#808191] leading-[26px] mr-[20px] break-ll">{truncate(item.donator, 4, 4, 11)}</p>
-                  <div className='bg-white flex justify-center rounded-[5px] bg-green-400 mr-[20px] w-[100px] '>
-                  <p className=" font-epilogue font-normal text-[16px] text-white leading-[26px]  break-ll">{item.donation}</p>
+                  <div className='bg-green-500 flex justify-center rounded-[5px] bg-green-400 mr-[20px] w-[100px] '>
+                  <p className=" font-epilogue font-normal text-[16px] text-black  leading-[26px]  break-ll">{item.donation}</p>
                   </div>
                 </div>
                 

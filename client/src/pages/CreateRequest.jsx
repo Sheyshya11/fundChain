@@ -5,18 +5,22 @@ import { ethers } from 'ethers';
 import { useStateContext } from '../context';
 import { CustomButton, FormField, Loader } from '../components';
 import { checkIfImage } from '../utils';
-import {toast, ToastContainer} from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useStorageUpload } from "@thirdweb-dev/react";
+import axios from 'axios'
 
 const CreateRequest = () => {
   const navigate = useNavigate();
   const { state } = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const { address, createRequest } = useStateContext();
-  const[isValid,setIsValid] = useState(false)
-  const [ValidOpenFundAmount,setValidOpenFundAmount] = useState();
+  const [isValid, setIsValid] = useState(false)
+  const [ValidOpenFundAmount, setValidOpenFundAmount] = useState();
+  const [reqImage, setReqImage] = useState();
+  const [licenseImage, setLicenseImage] = useState();
   const [file, setFile] = useState();
+  const [encryptFile, setEncryptFile] = useState(null);
   const { mutateAsync: upload } = useStorageUpload();
   const [form, setForm] = useState({
     campaignId: '',
@@ -24,12 +28,15 @@ const CreateRequest = () => {
     description: '',
     goal: '',
     recipient: '',
-    image: ''
+    image: '',
+    image_license: '',
+    file: '',
+
   });
   const hexadecimalRegex = /^0x[0-9A-Fa-f]+$/;
   const difference = (new Date(state.deadline).getTime()) - Date.now();
   /* const difference = 0; */
-  const minute = difference/(60 * 1000 )
+  const minute = difference / (60 * 1000)
   const remainingMinute = minute.toFixed(0);
 
   const notify = (message) => {
@@ -48,55 +55,90 @@ const CreateRequest = () => {
   const handleFormFieldChange = (fieldName, e) => {
     setForm({ ...form, [fieldName]: e.target.value })
   }
-  
+
   useEffect(() => {
     setIsValid(hexadecimalRegex.test(form.recipient));
   }, [form.recipient]);
 
-  useEffect(()=>{
-    if((state.openFunding) && (remainingMinute <= 0)){
-      setValidOpenFundAmount(state.amountCollected- (state.target - state.validFund));
-  }
-  else
-  {
-    setValidOpenFundAmount(state.validFund)
-  }
-  },[])
+  useEffect(() => {
+    if ((state.openFunding) && (remainingMinute <= 0)) {
+      setValidOpenFundAmount(state.amountCollected - (state.target - state.validFund));
+    }
+    else {
+      setValidOpenFundAmount(state.validFund)
+    }
+  }, [])
 
+console.log(state.validFund)
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
-   
-    
-      
-        if (address === state.owner) {
-          if (state.owner != form.recipient) {
-            if(isValid){       
-              if(form.goal <= state.validFund){
-                setIsLoading(true)
-                const uploadUrl = await upload({
-                  data: [file],
-                  options: { uploadWithGatewayUrl: true, uploadWithoutDirectory: true },
-                });
 
-                await createRequest({ ...form, image: uploadUrl[0], campaignId: state.pId, goal: ethers.utils.parseUnits(form.goal, 18) })
-                setIsLoading(false);
-                navigate(`/view-request/${state.pId}`, { state: state });}
-              else{
-                notify('Greater than the valid amount.')
-              }}
-                else{
-                  notify('Invalid address')
-                }
+    if (address === state.owner) {
+      if (state.owner != form.recipient) {
+        if (isValid) {
+          if (form.goal <= state.validFund) {
+            setIsLoading(true)
+
+            const formData = new FormData();
+            formData.append('encrypted_file', file);
+
+            const response = await axios.post('http://localhost:5000/encrypt', formData, {
+              headers: {
+                'Content-Type': 'multipart/form-data'
+              }
+              ,
+              responseType: 'blob'
+            })
+
+            const blob = new Blob([response.data], { type: 'text/plain;charset=utf-8' });
+            var filess = new File([blob], file.name)
+            console.log(filess)
+
+            const uploadFile = await upload({
+              data: [filess],
+              options: { uploadWithGatewayUrl: true, uploadWithoutDirectory: true },
+            })
+            console.log(uploadFile[0])
+            window.open(uploadFile[0], '_blank');
+
+
+
+            const uploadReqImage = await upload({
+              data: [reqImage],
+              options: { uploadWithGatewayUrl: true, uploadWithoutDirectory: true },
+            });
+
+            const uploadImageLicense = await upload({
+              data: [licenseImage],
+              options: { uploadWithGatewayUrl: true, uploadWithoutDirectory: true },
+            })
+
+
+            await createRequest({
+              ...form, image: uploadReqImage[0], image_license: uploadImageLicense[0], file: uploadFile[0], 
+              campaignId: state.pId, goal: ethers.utils.parseUnits(form.goal, 18)
+            })
+            setIsLoading(false);
+            navigate(`/view-request/${state.pId}`, { state: state});
           }
           else {
-            notify('Owner address cant be used as recipient address.')
+            notify('Greater than the valid amount.')
           }
         }
         else {
-          notify('Only owner can create Request');
+          notify('Invalid address')
         }
-      
-    
+      }
+      else {
+        notify('Owner address cant be used as recipient address.')
+      }
+    }
+    else {
+      notify('Only owner can create Request');
+    }
+
+
   }
 
   return (
@@ -139,20 +181,34 @@ const CreateRequest = () => {
           handleChange={(e) => handleFormFieldChange('description', e)}
         />
 
-         <FormField
+        <FormField
           labelName="Request image *"
-          placeholder="Place image URL of your Request"
           inputType="file"
           accept="image/*"
+          handleChange={(e) => setReqImage(e.target.files[0])}
+        />
+
+        <FormField
+          labelName="License image "
+          inputType="file"
+          accept="image/*"
+          handleChange={(e) => setLicenseImage(e.target.files[0])}
+        />
+
+        <FormField
+          labelName="Proposal *"
+          name="encrypted_file"
+          inputType="file"
+          accept=".txt"
           handleChange={(e) => setFile(e.target.files[0])}
-          />
+        />
 
         <div className="flex justify-center items-center mt-[20px]">
           <CustomButton
             btnType="submit"
             title="Submit new Request"
             styles="bg-[#1dc071]"
-           
+
           />
         </div>
         <ToastContainer
@@ -161,7 +217,7 @@ const CreateRequest = () => {
           hideProgressBar={false}
           newestOnTop={false}
           closeOnClick
-          rtl={false}        
+          rtl={false}
           theme="light"
         />
       </form>
