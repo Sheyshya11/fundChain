@@ -57,7 +57,7 @@ const DisplayRequests = () => {
       fetchRequests();
 
     }
-  }, [address, contract]);
+  }, [address,contract]);
 
 
   return ( <div>

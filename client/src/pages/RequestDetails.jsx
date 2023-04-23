@@ -17,7 +17,7 @@ import axios from 'axios';
 const RequestDetails = () => {
   const { address, getDonations, contract} = useStateContext();
   const [isWaiting, setIsWaiting] = useState(false)
-
+  const navigate= useNavigate();
   const storage = new ThirdwebStorage();
 
 
@@ -26,24 +26,24 @@ const RequestDetails = () => {
   const { state } = useLocation();
   const [client, setClient] = useState(null);
   const [encryptFile, setEncryptFile] = useState(null);
-  const [donations, setDonations] = useState([]);
   const [uniqueDonator, setUniqueDonator] = useState([]);
   const { id } = useParams();
   const intId = parseInt(id)
 
+
   const fetchDonators = async () => {
     setIsWaiting(true)
-    const data = await getDonations(state.campaignId);
+    const data = await getDonations(1);
     const filterdata = data.map(d => d.donator)
     const uniquedata = () => {
       return [...new Set(filterdata)];
     }
     setUniqueDonator(uniquedata)
-    setDonations(data);
+
     setIsWaiting(false)
 
   }
-console.log(uniqueDonator)
+
   useEffect(() => {
     if (contract) {
       fetchDonators();
@@ -167,7 +167,14 @@ console.log(uniqueDonator)
             <button type="submit" className='bg-slate-500 w-[200px] rounded-md shadow-md p-1 text-white '>Decrypt</button>
           </form> }
          
-
+          <CustomButton
+     btnType="button"
+     title="Go back"
+     styles=" bg-[#008080]  min-h-[48px] w-[180px] items-center mt-[40px] "
+     handleClick={()=>{
+        navigate(`/view-request/${state.campaignId}`)
+     }}
+     />
         </div>
       </div>
 

@@ -94,8 +94,7 @@ console.log()
 
   }
 
-console.log(DonationNumber)
-console.log(voteCount)
+
   const handleVote = async (rId) => {
 
     if (uniqueDonator.includes(address)) {
@@ -105,7 +104,7 @@ console.log(voteCount)
           await approveRequest(rId);
        /*    await hasVoted(campaignId); */
           setCount(count + 1);
-          navigate(`/request-details/${rId}`,{ state: state })
+          navigate(`/view-request/${rId}`)
           setIsLoading(false)
 
 
@@ -136,7 +135,7 @@ console.log(voters)
 
               setIsLoading(true)
               await finalizeRequest(rId, goal);
-              navigate(`/request-details/${rId}`)
+              navigate(`/view-request/${rId}`)
               setIsLoading(false)
             }
             else {
