@@ -7,7 +7,7 @@ module.exports = {
       hardhat:{},
       goerli:{
         url:'https://eth-goerli.g.alchemy.com/v2/WrAsIcopBRVoa0meScNqdCeIHJUDZT7l',
-        accounts:[`0x${process.env.PRIVATE_KEY}`]
+        accounts:[`0x50718ff10f5424f1354bdec713569caf37283945683d917a95450486c5cc742c`] //${process.env.PRIVATE_KEY}
       }
     },
    
