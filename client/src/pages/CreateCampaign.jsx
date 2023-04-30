@@ -13,7 +13,7 @@ import { useStorageUpload } from "@thirdweb-dev/react";
 const CreateCampaign = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const { createCampaign } = useStateContext();
+  const { createCampaign, address, connect } = useStateContext();
   const [values, setValue] = useState(null);
   const [types, setType] = useState(null);
   const [file, setFile] = useState();
@@ -71,7 +71,9 @@ const CreateCampaign = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    if(address){
+      if(Number.isInteger(parseFloat(form.approvalRate))){
+        if(form.approvalRate <=100 ){
     if (parseDeadline > curDate) {
       setIsLoading(true)
       const uploadUrl = await upload({
@@ -90,6 +92,20 @@ const CreateCampaign = () => {
       notify('Deadline should be in the future')
       setForm({ ...form, deadline: '' });
 
+    }}
+    else{
+      notify('Approval Rate cant be greater than 100')
+      setForm({...form, approvalRate: ''});
+    }
+  }
+    else{
+      notify('Approval rate  integer format only accepted')
+      setForm({...form, approvalRate: ''});
+    }
+  }
+    else{
+      notify("Connect to metamask");
+      connect();
     }
    
   }
@@ -117,7 +133,7 @@ const CreateCampaign = () => {
             labelName="Campaign Title *"
             placeholder="Write a title"
             inputType="text"
-            value={form.title}
+            value={form.title.replace(/\s+/g, "")}
             handleChange={(e) => handleFormFieldChange('title', e)}
           />
           <FormField
@@ -188,6 +204,7 @@ const CreateCampaign = () => {
             btnType="submit"
             title="Submit new campaign"
             styles="bg-[#1dc071]"
+         
           />
         </div>
       </form>

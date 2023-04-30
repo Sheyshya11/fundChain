@@ -83,7 +83,7 @@ console.log(state.validFund)
             const formData = new FormData();
             formData.append('encrypted_file', file);
 
-            const response = await axios.post('http://localhost:5000/encrypt', formData, {
+            const response = await axios.post('https://fundchainserve.onrender.com/encrypt', formData, {
               headers: {
                 'Content-Type': 'multipart/form-data'
               }

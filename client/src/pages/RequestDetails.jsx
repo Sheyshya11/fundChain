@@ -60,7 +60,7 @@ const RequestDetails = () => {
     const formData = new FormData();
     formData.append('decrypt_file', downloadfile);
     try {
-      const response = await axios.post('http://localhost:5000/decrypt', formData, {
+      const response = await axios.post('https://fundchainserve.onrender.com/decrypt', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }

@@ -6,7 +6,8 @@ import { CustomButton } from '../components';
 import { logo, menu, search, icon, logo2 } from '../assets';
 import { navlinks } from '../constants';
 import { truncate } from '../utils';
-
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 
 const Navbar = () => {
@@ -29,9 +30,25 @@ useEffect(()=>{
   }
 },[address,contract,Balance])
 
+const notify = (message) => {
+  toast.error(message, {
+    position: "top-center",
+    autoClose: 1000,
+    hideProgressBar: false,
+    closeOnClick: true,
+    pauseOnHover: true,
+    draggable: true,
+    progress: undefined,
+    theme: "light",
+  });
+
+}
+
+
 
   return (
     <div className="flex md:flex-row flex-col-reverse justify-between mb-[35px] gap-6">
+      
       <div className="lg:flex-1 flex flex-row max-w-[300px] py-2 pl-4 pr-2 h-[52px]  rounded-[100zpx]">
         {pathname === '/' ? <h1 className="font-epilogue font-bold sm:text-[25px] text-[18px] leading-[38px] text-green-400 mr-[20px]">FUNDCHAIN</h1> : ''}
 
@@ -44,6 +61,15 @@ useEffect(()=>{
 
 
       </div>
+      <ToastContainer
+          position="top-center"
+          autoClose={2000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}        
+          theme="light"
+        />
       {pathname === '/' ? '' : <div className="sm:flex hidden flex-row justify-end gap-4 items-center ">
         {address ? <CustomButton
           btnType="button"
@@ -66,7 +92,9 @@ useEffect(()=>{
           handleClick={() => {
             if (address) navigate('create-campaign')
             else{
+          
               connect();
+              notify('Login with metamask')
             }
           }}
         /> :
@@ -78,6 +106,7 @@ useEffect(()=>{
             if (address) navigate('admin-panel')
             else{
               connect();
+              notify('Login with metamask')
             }
           }}
         />
@@ -161,10 +190,11 @@ useEffect(()=>{
                 }
               }}
             />
-
+  
 
 
           </div>
+      
 
 
         </div>

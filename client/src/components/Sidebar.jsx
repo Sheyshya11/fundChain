@@ -18,7 +18,7 @@ const Icon = ({ styles, name, imgUrl, isActive, disabled, handleClick }) => (
 const Sidebar = () => {
   const navigate = useNavigate();
   const [isActive, setIsActive] = useState('dashboard');
-  const { disconnect, address } = useStateContext();
+  const { disconnect, address, connect } = useStateContext();
 
 
   return (
@@ -44,6 +44,7 @@ const Sidebar = () => {
                 if (link.name == 'logout'){
                   disconnect();
                 }
+               
                
               }}
             />

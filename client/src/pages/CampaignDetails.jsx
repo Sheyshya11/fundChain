@@ -12,8 +12,8 @@ import 'react-toastify/dist/ReactToastify.css';
 const CampaignDetails = () => {
 
   const navigate = useNavigate();
-  const { donate, getDonations, contract, address, deleteCampaign, connect,refund, getOpenValidFund,
-    getRefundedAddress, getCampaigns,getVoters, edit } = useStateContext();
+  const { donate, getDonations, contract, address, deleteCampaign, connect,refund,
+     getCampaigns, edit } = useStateContext();
 
   const { id } = useParams();
   const [campaigns, setCampaigns] = useState({});
@@ -77,8 +77,6 @@ const CampaignDetails = () => {
  
 
 
- 
- 
 
   const fetchDonators = async () => {
     const data = await getDonations(id);
@@ -187,6 +185,7 @@ console.log(campaigns)
     }
     else {
       connect();
+     notify('Login with metamask')
     }
   }
 
@@ -339,7 +338,8 @@ console.log(campaigns)
             styles={ 'bg-[#7024ec] w-[160px] text-[14px]' }
             handleClick={() => {
               if (address) handleCreateRequest(campaigns.pId)
-              else connect()
+              else connect();  
+
             }}
           /> : ''}
           {campaigns.status ?
@@ -348,7 +348,12 @@ console.log(campaigns)
           title={'View Request'}
           styles={address == campaigns.owner ? 'bg-[#7024ec] w-[160px] ml-[20px] text-[14px]' : 'bg-[#7024ec] w-[160px] text-[14px]'}
           handleClick={() => {
-            handleNavigate(campaigns.pId);
+            if(address){
+            handleNavigate(campaigns.pId);}
+            else{
+              connect();
+              notify('Login with metamask')
+            }
           }}
         />
       : ''}
@@ -487,6 +492,7 @@ console.log(campaigns)
                   btnType="submit"
                   title="Fund Campaign"
                   styles="w-full bg-[#1dc071]"
+      
                 />}
                  
                 <ToastContainer

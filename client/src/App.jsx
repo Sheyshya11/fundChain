@@ -1,6 +1,5 @@
 import React,{useEffect,useState} from 'react';
 import { Route, Routes} from 'react-router-dom';
-import axios from 'axios'
 
 import { Sidebar, Navbar } from './components';
 import { CampaignDetails, CreateCampaign, Home, Profile, Landing, CreateRequest, AdminPanel, RequestDetails,NotFoundPage } from './pages';
@@ -12,16 +11,6 @@ const App = () => {
  const [data, setData] = useState(null);
 
 
-/*  const fetchData=async()=>{
- await axios.get('http://localhost:8080/api').then(
-  (res)=>{setData(res.data)}
- )
-
- }
- useEffect(()=>{
-  fetchData();
- },[])
- */
 
   return (
     <div className="relative  sm:-8 p-4 bg-[#13131a] min-h-screen flex flex-row">
@@ -38,7 +27,7 @@ const App = () => {
           <Route  path="/" element={<Landing />} />
           <Route  path="/dashboard" element={<Home />}/>
           <Route  path="/profile" element={<Profile />} />
-          <Route  path="/create-campaign" element={address ? <CreateCampaign />: <NotFoundPage/>} />
+          <Route  path="/create-campaign" element={<CreateCampaign />} />
           <Route  path="/create-request/:id" element={<CreateRequest />}/>
           <Route  path="/view-request/:id" element={ <DisplayRequests />}/>
           <Route  path='/request-details/:id' element={<RequestDetails />}/>
